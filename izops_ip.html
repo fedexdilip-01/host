@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>AI CCTV Command Center | IP Management Dashboard</title>
+  <!-- Google Fonts + Font Awesome 6 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <!-- Chart.js for AI analytics visual -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1c;
+      color: #eef2ff;
+      overflow-x: hidden;
+    }
+
+    /* modern scroll */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e2538;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3b4b6e;
+      border-radius: 10px;
+    }
+
+    /* dashboard layout */
+    .dashboard-wrapper {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 1.2rem 1.5rem;
+    }
+
+    /* header with AI badge */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: rgba(18, 25, 45, 0.7);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 0.8rem 1.8rem;
+      border: 1px solid rgba(72, 187, 255, 0.2);
+    }
+    .logo-area h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #C0E0FF, #4a9eff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ai-badge {
+      background: linear-gradient(145deg, #0f2b3d, #091726);
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-left: 3px solid #2ecc71;
+      box-shadow: 0 0 8px rgba(46,204,113,0.3);
+    }
+    .ai-badge i {
+      color: #2ecc71;
+      margin-right: 6px;
+    }
+
+    /* stats row */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: #111827;
+      border-radius: 1.5rem;
+      padding: 1rem 1.2rem;
+      border: 1px solid #1f2a3e;
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .stat-card .stat-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8ba0c0;
+    }
+    .stat-card .stat-number {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-top: 6px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .trend-up { color: #2ecc71; font-size: 0.8rem; }
+
+    /* two column core */
+    .core-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 900px) {
+      .core-grid { grid-template-columns: 1fr; }
+    }
+
+    /* camera panel */
+    .panel {
+      background: #0f172ad9;
+      backdrop-filter: blur(8px);
+      border-radius: 1.8rem;
+      border: 1px solid #293549;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 1rem 1.5rem;
+      background: #0b1120;
+      border-bottom: 1px solid #1e2a3e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .cam-list {
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .cam-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 1.5rem;
+      border-bottom: 1px solid #1a2538;
+      transition: 0.1s;
+      cursor: pointer;
+    }
+    .cam-item:hover {
+      background: #101b2b;
+    }
+    .cam-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .cam-status {
+      width: 10px;
+      height: 10px;
+      border-radius: 10px;
+      background: #2ecc71;
+      box-shadow: 0 0 6px #2ecc71;
+    }
+    .cam-status.offline {
+      background: #e74c3c;
+      box-shadow: none;
+    }
+    .cam-name {
+      font-weight: 500;
+    }
+    .cam-ip {
+      font-size: 0.7rem;
+      color: #7c8db0;
+      font-family: monospace;
+    }
+    .ai-tag {
+      background: #1f3a4b;
+      border-radius: 20px;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    /* AI insights & analytics */
+    .ai-insight-area {
+      background: linear-gradient(145deg, #0b1122, #0c1325);
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      margin-top: 1rem;
+    }
+    .insight-message {
+      background: #00000033;
+      border-left: 4px solid #3b82f6;
+      padding: 0.8rem;
+      border-radius: 1rem;
+      font-size: 0.9rem;
+    }
+    canvas#analyticsChart {
+      max-height: 200px;
+      width: 100%;
+    }
+    /* form for adding camera */
+    .add-cam-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 1rem;
+      align-items: center;
+    }
+    .add-cam-form input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #2d3a5e;
+      padding: 10px 14px;
+      border-radius: 40px;
+      color: white;
+      outline: none;
+    }
+    .add-cam-form button {
+      background: #2c7da0;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-ai {
+      background: #4f46e5;
+      box-shadow: 0 0 8px #4f46e5;
+    }
+    button {
+      color: white;
+    }
+
+    /* real-time alerts */
+    .alert-stream {
+      background: #0b1120;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      margin-top: 1.2rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .alert-item {
+      background: #1a1f30;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.7rem;
+      opacity: 0.7;
+    }
+    .ai-pulse {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard-wrapper">
+  <div class="top-bar">
+    <div class="logo-area">
+      <h1><i class="fas fa-video"></i> AI CCTV Manager | IP Insight</h1>
+    </div>
+    <div class="ai-badge">
+      <i class="fas fa-microchip"></i> AI Neural Engine · Active Learning
+    </div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-title">Total Cameras</div><div class="stat-number" id="totalCams">0</div></div>
+    <div class="stat-card"><div class="stat-title">Active Streams</div><div class="stat-number" id="activeCams">0</div></div>
+    <div class="stat-card"><div class="stat-title">AI Alerts (24h)</div><div class="stat-number" id="alertCount">0</div></div>
+    <div class="stat-card"><div class="stat-title">Avg AI Confidence</div><div class="stat-number" id="aiConfidence">94<span style="font-size:1rem;">%</span></div></div>
+  </div>
+
+  <div class="core-grid">
+    <!-- LEFT: IP Camera Management -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2><i class="fas fa-network-wired"></i> IP Camera Registry</h2>
+        <i class="fas fa-plus-circle" style="cursor:pointer;" id="openAddCam" title="Add new camera"></i>
+      </div>
+      <div class="cam-list" id="cameraListContainer">
+        <!-- dynamic camera list -->
+      </div>
+      <div class="add-cam-form" id="addCamForm" style="display: none;">
+        <input type="text" id="camNameInput" placeholder="Camera name (e.g., Entrance North)" autocomplete="off">
+        <input type="text" id="camIpInput" placeholder="IP Address (e.g., 192.168.1.101)">
+        <button id="confirmAddCam"><i class="fas fa-save"></i> Add</button>
+        <button id="cancelAddCam">Cancel</button>
+      </div>
+      <div class="ai-insight-area">
+        <i class="fas fa-robot" style="color:#4f9eff;"></i> <strong>AI Insight:</strong>
+        <div class="insight-message" id="aiInsightText">
+          Analyzing camera feeds... AI suggests motion optimization on main entrance.
+        </div>
+        <canvas id="analyticsChart" width="400" height="160" style="margin-top: 12px;"></canvas>
+      </div>
+    </div>
+
+    <!-- RIGHT: AI Capabilities + Real-time Analytics -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2><i class="fas fa-brain"></i> AI Cognitive Dashboard</h2>
+        <span class="ai-tag"><i class="fas fa-charging-station"></i> Deep Learning</span>
+      </div>
+      <div style="padding: 1rem 1.2rem;">
+        <div style="background:#0a0f1c; border-radius: 1.2rem; padding: 1rem;">
+          <div><i class="fas fa-video"></i> <strong>Real-Time AI Detection</strong> <span id="simulatedInference" style="float:right;">person: 92% | vehicle: 87%</span></div>
+          <div class="epoch-progress" style="background:#1f2a3e; border-radius: 20px; margin: 12px 0; height: 6px;"><div id="aiActivityFill" style="width: 68%; height: 6px; background:#3b82f6; border-radius:20px;"></div></div>
+          <p style="font-size:0.75rem;">🧠 YOLOv8 + Transformer tracking | Smart alerts for suspicious behavior</p>
+        </div>
+        <div class="alert-stream" id="alertStream">
+          <div class="alert-item"><i class="fas fa-bell" style="color:#f39c12;"></i> AI ready: monitoring 4 cameras</div>
+        </div>
+        <button id="simulateAIAlert" class="btn-ai" style="width:100%; margin-top:12px; background:#1f3a6b; padding: 8px; border-radius: 60px;"><i class="fas fa-microphone-alt"></i> Trigger AI Threat Simulation</button>
+        <button id="runHealthCheck" style="width:100%; margin-top:8px; background:#2c3e66;"><i class="fas fa-stethoscope"></i> AI Health Check (Diagnostic)</button>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="footer">
+    <i class="fas fa-shield-alt"></i> AI-Powered CCTV Management | Edge Analytics | Anomaly Detection
+  </footer>
+</div>
+
+<script>
+  // ---------- CCTV IP Management System with AI ----------
+  $(function () {
+    // Data Model
+    let cameras = [
+      { id: 1, name: "Main Gate", ip: "192.168.1.10", status: "online", aiEnabled: true, alerts: 2 },
+      { id: 2, name: "Parking Lot", ip: "192.168.1.22", status: "online", aiEnabled: true, alerts: 5 },
+      { id: 3, name: "Lobby Entrance", ip: "192.168.1.45", status: "online", aiEnabled: true, alerts: 1 },
+      { id: 4, name: "Server Room", ip: "10.0.0.99", status: "offline", aiEnabled: false, alerts: 0 }
+    ];
+    let alertHistory = [
+      { msg: "[AI] Motion detected at Main Gate - 22:34", time: "2m ago" },
+      { msg: "[AI] Unusual loitering at Parking Lot - 22:12", time: "12m ago" },
+      { msg: "[System] Camera Server Room went offline - 21:45", time: "1h ago" }
+    ];
+    let totalAlertsToday = 18;   // dynamic counter
+
+    // Helper to update stats and UI
+    function updateStatsAndUI() {
+      const total = cameras.length;
+      const active = cameras.filter(c => c.status === "online").length;
+      $("#totalCams").text(total);
+      $("#activeCams").text(active);
+      $("#alertCount").text(totalAlertsToday);
+      // AI confidence random fluctuation but based on active cams (simulate smart)
+      let baseConf = 85 + (active * 2);
+      baseConf = Math.min(98, baseConf);
+      $("#aiConfidence").html(`${baseConf}<span style="font-size:1rem;">%</span>`);
+      renderCameraList();
+      updateAlertStream();
+      // update AI insight text dynamically
+      updateAIInsightText(active);
+    }
+
+    function renderCameraList() {
+      const container = $("#cameraListContainer");
+      container.empty();
+      cameras.forEach(cam => {
+        const isOnline = cam.status === "online";
+        const camDiv = $(`<div class="cam-item" data-id="${cam.id}">
+          <div class="cam-info">
+            <div class="cam-status ${isOnline ? '' : 'offline'}"></div>
+            <div><span class="cam-name">${escapeHtml(cam.name)}</span><br><span class="cam-ip">${cam.ip}</span></div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            ${cam.aiEnabled ? '<span class="ai-tag"><i class="fas fa-microchip"></i> AI</span>' : ''}
+            <i class="fas fa-ellipsis-v" style="cursor:pointer;" class="cam-menu"></i>
+          </div>
+        </div>`);
+        // double-click to toggle status (simulate IP management)
+        camDiv.on('dblclick', function() {
+          const newStatus = cam.status === "online" ? "offline" : "online";
+          cam.status = newStatus;
+          if(newStatus === "online" && !cam.aiEnabled) {
+            // if brought online suggest AI activation
+            addAlert(`AI auto-suggestion: enable analytics for ${cam.name}`, true);
+          }
+          updateStatsAndUI();
+          addAlert(`Camera ${cam.name} status changed to ${newStatus.toUpperCase()}`, false);
+        });
+        // context menu simulation: remove camera (right-click)
+        camDiv.on('contextmenu', function(e) {
+          e.preventDefault();
+          if(confirm(`Remove camera ${cam.name} from system?`)) {
+            cameras = cameras.filter(c => c.id !== cam.id);
+            updateStatsAndUI();
+            addAlert(`Camera ${cam.name} removed from IP registry.`, false);
+          }
+        });
+        container.append(camDiv);
+      });
+      if(cameras.length === 0) {
+        container.html('<div style="padding:2rem; text-align:center;">No cameras. Use + to add IP camera.</div>');
+      }
+    }
+
+    function addAlert(msg, isAi = true) {
+      const prefix = isAi ? "🤖 AI Alert: " : "⚠️ System: ";
+      alertHistory.unshift({ msg: prefix + msg, time: "just now" });
+      if(alertHistory.length > 12) alertHistory.pop();
+      totalAlertsToday += 1;
+      updateAlertStream();
+      updateStatsAndUI();
+      // flash effect
+      $("#alertStream").animate({ scrollTop: 0 }, 200);
+    }
+
+    function updateAlertStream() {
+      const streamDiv = $("#alertStream");
+      streamDiv.empty();
+      if(alertHistory.length === 0) {
+        streamDiv.html('<div class="alert-item">✅ No active alerts.</div>');
+        return;
+      }
+      alertHistory.slice(0, 7).forEach(alert => {
+        streamDiv.append(`<div class="alert-item"><i class="fas fa-exclamation-triangle" style="color:#ffaa44;"></i> ${alert.msg} <span style="margin-left:auto; font-size:0.7rem;">${alert.time}</span></div>`);
+      });
+    }
+
+    function updateAIInsightText(activeCount) {
+      let insight = "";
+      if(activeCount === 0) insight = "❗ No active IP cameras. AI offline. Add or activate cameras for analytics.";
+      else if(activeCount <= 2) insight = "🧠 AI Neural Engine: low camera density. Suggest adding coverage at entry points. Analytics running in low-power mode.";
+      else insight = "✅ Advanced AI: Object detection, intrusion alerts, and behavior analysis active. Confidence scores > 90% across feeds. Recommend optimizing storage for smart retention.";
+      $("#aiInsightText").text(insight);
+      // also update simulated inference text based on active
+      const randPerson = Math.floor(70 + Math.random() * 25);
+      const randVehicle = Math.floor(60 + Math.random() * 30);
+      $("#simulatedInference").html(`person: ${randPerson}% | vehicle: ${randVehicle}% | anomaly: low`);
+      const fillWidth = Math.min(95, 50 + activeCount * 8);
+      $("#aiActivityFill").css("width", `${fillWidth}%`);
+    }
+
+    // chart rendering for AI analytics (object detection frequency)
+    let chart;
+    function initChart() {
+      const ctx = document.getElementById('analyticsChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{
+            label: 'AI Detections (objects/hr)',
+            data: [142, 188, 210, 197, 256, 312, 289],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.1)',
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: '#4f9eff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { labels: { color: '#cbd5e6' } } },
+          scales: { y: { grid: { color: '#1e2a44' }, ticks: { color: '#b9c7dd' } }, x: { ticks: { color: '#b9c7dd' } } }
+        }
+      });
+    }
+
+    function randomUpdateChart() {
+      if(chart) {
+        const newData = chart.data.datasets[0].data.map(() => Math.floor(120 + Math.random() * 280));
+        chart.data.datasets[0].data = newData;
+        chart.update();
+      }
+    }
+
+    // Simulate AI detection every 18 sec
+    let aiInterval = setInterval(() => {
+      if(cameras.some(c => c.status === "online")) {
+        const randomEvent = Math.random();
+        if(randomEvent > 0.65) {
+          const onlineCams = cameras.filter(c => c.status === "online");
+          if(onlineCams.length) {
+            const randCam = onlineCams[Math.floor(Math.random() * onlineCams.length)];
+            addAlert(`AI analyzed ${randCam.name}: unusual movement pattern detected.`, true);
+          } else {
+            addAlert(`AI idle: no online cameras.`, true);
+          }
+        } else {
+          // minor update inference numbers
+          updateAIInsightText(cameras.filter(c => c.status === "online").length);
+        }
+        randomUpdateChart();
+      }
+    }, 14000);
+  
+    // Add camera logic
+    $("#openAddCam").click(() => {
+      $("#addCamForm").slideToggle();
+    });
+    $("#confirmAddCam").click(() => {
+      const name = $("#camNameInput").val().trim();
+      const ip = $("#camIpInput").val().trim();
+      if(!name || !ip) {
+        addAlert("Invalid camera name or IP", false);
+        return;
+      }
+      const newId = Date.now();
+      cameras.push({
+        id: newId,
+        name: name,
+        ip: ip,
+        status: "online",
+        aiEnabled: true,
+        alerts: 0
+      });
+      $("#camNameInput").val("");
+      $("#camIpInput").val("");
+      $("#addCamForm").slideUp();
+      updateStatsAndUI();
+      addAlert(`New IP camera "${name}" (${ip}) added. AI analytics enabled.`, true);
+    });
+    $("#cancelAddCam").click(() => {
+      $("#addCamForm").slideUp();
+    });
+
+    // Simulate AI threat
+    $("#simulateAIAlert").click(() => {
+      const activeCam = cameras.find(c => c.status === "online");
+      if(activeCam) {
+        addAlert(`⚠️ HIGH ALERT: Intrusion risk at ${activeCam.name}. AI confidence 96%. Immediate check recommended.`, true);
+        // also simulate notification vibration/ new stat
+        totalAlertsToday += 2;
+        updateStatsAndUI();
+      } else {
+        addAlert("No online cameras for threat simulation. Activate a camera.", false);
+      }
+    });
+
+    // AI Health Check
+    $("#runHealthCheck").click(() => {
+      const onlineCount = cameras.filter(c => c.status === "online").length;
+      let healthMsg = `🧪 AI Diagnostic: ${onlineCount} active cameras. Model latency ~32ms.`;
+      if(onlineCount === 0) healthMsg += " ❌ No active stream — IP cameras offline.";
+      else if(onlineCount < 3) healthMsg += " ⚠️ Low camera density: consider adding more coverage for robust detection.";
+      else healthMsg += " ✅ Full neural pipeline operational. Object detection F1-score: 0.91. Recommendation: enable edge recording.";
+      addAlert(healthMsg, true);
+    });
+
+    // helper escape
+    function escapeHtml(str) {
+      if(!str) return "";
+      return str.replace(/[&<>]/g, function(m) {
+        if(m === '&') return '&amp;';
+        if(m === '<') return '&lt;';
+        if(m === '>') return '&gt;';
+        return m;
+      });
+    }
+
+    // initial rendering and also periodical auto AI insight
+    initChart();
+    updateStatsAndUI();
+    setInterval(() => {
+      // rotate AI insight predictions / dynamic confidence
+      const active = cameras.filter(c => c.status === "online").length;
+      updateAIInsightText(active);
+      // random tiny updates
+      const randConf = Math.floor(85 + Math.random() * 12);
+      $("#aiConfidence").html(`${randConf}<span style="font-size:1rem;">%</span>`);
+    }, 12000);
+
+    // dashboard custom: also handle right click info for IP management
+    $(document).on('click', '.cam-item i.fa-ellipsis-v', function(e) {
+      e.stopPropagation();
+      const camDiv = $(this).closest('.cam-item');
+      const camId = parseInt(camDiv.data('id'));
+      const cam = cameras.find(c => c.id === camId);
+      if(cam) {
+        const newStatus = cam.status === "online" ? "offline" : "online";
+        cam.status = newStatus;
+        updateStatsAndUI();
+        addAlert(`Manual toggle: ${cam.name} is now ${newStatus.toUpperCase()}`, false);
+      }
+    });
+    
+    // Cleanup on page unload (optional)
+    window.addEventListener('beforeunload', () => {
+      if(aiInterval) clearInterval(aiInterval);
+    });
+  });
+</script>
+</body>
+</html>
