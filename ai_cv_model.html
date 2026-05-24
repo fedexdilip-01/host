@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>CV Master Dashboard | Computer Vision Learning Hub</title>
+  <!-- Google Fonts & Font Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f4f8;
+      color: #1e293b;
+      line-height: 1.5;
+      padding: 2rem 1.5rem;
+    }
+
+    /* dashboard grid */
+    .dashboard-container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    .hero {
+      margin-bottom: 2rem;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0f2b3d, #1e4a6e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero h1 i {
+      background: none;
+      color: #2c7da0;
+      font-size: 2rem;
+    }
+    .hero p {
+      color: #475569;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      border-left: 4px solid #2c7da0;
+      padding-left: 1rem;
+    }
+
+    /* stats row */
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: white;
+      flex: 1 1 180px;
+      border-radius: 28px;
+      padding: 1.2rem 1rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.05);
+      transition: all 0.2s;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+    .stat-card i {
+      font-size: 2rem;
+      color: #2c7da0;
+      margin-bottom: 0.5rem;
+    }
+    .stat-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #4a627a;
+    }
+    .stat-card .number {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f2b3d;
+    }
+
+    /* main 3-column layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 2rem;
+    }
+
+    /* cards */
+    .card {
+      background: white;
+      border-radius: 28px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid #e9edf2;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1);
+    }
+    .card-header {
+      padding: 1.2rem 1.5rem;
+      background: #fafcff;
+      border-bottom: 2px solid #eef2f6;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-header i {
+      font-size: 1.7rem;
+      color: #2c7da0;
+    }
+    .card-header h2 {
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+    .card-content {
+      padding: 1.2rem 1.5rem 1.5rem;
+    }
+
+    /* list items for models/algo */
+    .model-item, .algo-item {
+      background: #f8fafc;
+      margin-bottom: 1rem;
+      padding: 0.9rem;
+      border-radius: 20px;
+      border-left: 4px solid #2c7da0;
+      transition: all 0.1s;
+    }
+    .model-title, .algo-title {
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+      align-items: center;
+    }
+    .model-title span:first-child, .algo-title span:first-child {
+      font-size: 1rem;
+    }
+    .badge {
+      background: #e2e8f0;
+      padding: 0.2rem 0.7rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .example-desc {
+      margin-top: 0.7rem;
+      font-size: 0.85rem;
+      color: #2c3e50;
+      background: #ffffff;
+      padding: 0.7rem;
+      border-radius: 16px;
+      display: none;
+      border: 1px solid #dee4ec;
+    }
+    .example-desc.show {
+      display: block;
+      animation: fadeSlide 0.2s ease;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-6px);}
+      to { opacity: 1; transform: translateY(0px);}
+    }
+    .code-snip {
+      background: #1e293b;
+      color: #bbf0e6;
+      padding: 0.5rem;
+      border-radius: 12px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      margin-top: 8px;
+      overflow-x: auto;
+    }
+    .btn-toggle {
+      background: none;
+      border: none;
+      color: #2c7da0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* training sim section */
+    .train-section {
+      background: linear-gradient(105deg, #ffffff 0%, #fef9e8 100%);
+      border-radius: 28px;
+      padding: 1.5rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ffe6c7;
+    }
+    .train-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+    .train-header i {
+      font-size: 1.8rem;
+      color: #e67e22;
+    }
+    .epoch-progress {
+      background: #e9ecef;
+      border-radius: 40px;
+      height: 12px;
+      width: 100%;
+      margin: 1rem 0;
+    }
+    .epoch-fill {
+      width: 0%;
+      height: 12px;
+      background: #e67e22;
+      border-radius: 40px;
+      transition: width 0.2s;
+    }
+    .sim-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .sim-btn {
+      background: #2c3e66;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 40px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .sim-btn.reset-btn {
+      background: #94a3b8;
+    }
+    .sim-btn:hover {
+      opacity: 0.85;
+      transform: scale(0.97);
+    }
+    .loss-acc {
+      background: #f1f5f9;
+      border-radius: 20px;
+      padding: 0.8rem;
+      margin-top: 1rem;
+      font-family: monospace;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.8rem;
+      color: #5c6f87;
+      border-top: 1px solid #dce5ef;
+      padding-top: 1.5rem;
+    }
+    @media (max-width: 720px) {
+      body { padding: 1rem; }
+      .card-header h2 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard-container">
+  <div class="hero">
+    <h1><i class="fas fa-microchip"></i> Computer Vision Master Dashboard</h1>
+    <p>📘 Advanced curriculum: Train from scratch · Pre-trained models · Core algorithms · Hands-on examples for master students</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><i class="fas fa-brain"></i><h3>Algorithms</h3><div class="number" id="algoCount">8</div></div>
+    <div class="stat-card"><i class="fas fa-cubes"></i><h3>Pre-trained Models</h3><div class="number" id="ptCount">5</div></div>
+    <div class="stat-card"><i class="fas fa-chalkboard-teacher"></i><h3>Train Pipelines</h3><div class="number">1</div></div>
+    <div class="stat-card"><i class="fas fa-code-branch"></i><h3>Interactive demos</h3><div class="number">⚡ live</div></div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- PRETRAINED MODELS CARD -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-database"></i>
+        <h2>🏆 Pre-trained Models</h2>
+      </div>
+      <div class="card-content" id="pretrainedList">
+        <!-- dynamic from JS -->
+      </div>
+    </div>
+
+    <!-- ALGORITHMS & METHODS CARD -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-chart-line"></i>
+        <h2>🧠 Core Algorithms</h2>
+      </div>
+      <div class="card-content" id="algorithmsList">
+        <!-- dynamic -->
+      </div>
+    </div>
+
+    <!-- TRAINING SIMULATOR + EXAMPLE -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-fire"></i>
+        <h2>⚙️ Training Simulator</h2>
+      </div>
+      <div class="card-content">
+        <p style="margin-bottom: 12px; font-size:0.9rem"><strong>Master-Level Example:</strong> Fine-tune a <code>ResNet-18</code> on CIFAR-10 (simulated training loop)</p>
+        <div class="train-section">
+          <div class="train-header">
+            <i class="fas fa-chart-simple"></i>
+            <span><strong>Live training metrics</strong> (epoch-wise)</span>
+          </div>
+          <div class="epoch-progress">
+            <div class="epoch-fill" id="epochFill"></div>
+          </div>
+          <div id="epochDisplay" style="font-weight:500; margin-bottom:8px;">Epoch 0 / 10</div>
+          <div class="sim-controls">
+            <button class="sim-btn" id="trainStepBtn"><i class="fas fa-step-forward"></i> Train 1 Epoch</button>
+            <button class="sim-btn" id="trainFullBtn"><i class="fas fa-play"></i> Run 10 Epochs</button>
+            <button class="sim-btn reset-btn" id="resetTrainBtn"><i class="fas fa-undo-alt"></i> Reset</button>
+          </div>
+          <div class="loss-acc" id="metricsPanel">
+            <span>📉 Loss: -- | 🎯 Accuracy: --%</span>
+          </div>
+          <div class="code-snip" style="margin-top: 12px;">
+            💡 Pseudocode: model.train(); for images, labels in dataloader: outputs = model(images); loss = criterion(outputs, labels); loss.backward(); optimizer.step();
+          </div>
+        </div>
+        <div style="margin-top: 1rem; background:#eef2ff; border-radius: 18px; padding: 0.7rem;">
+          <i class="fas fa-graduation-cap"></i> <strong>Master insight:</strong> Transfer learning + data augmentation boosts small dataset performance.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Extended explanation: Extra examples row -->
+  <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem;">
+    <div style="flex: 1; background: #fff; border-radius: 24px; padding: 1rem 1.3rem; box-shadow: 0 6px 14px rgba(0,0,0,0.02); border: 1px solid #eef2f0;">
+      <i class="fas fa-video" style="color:#e67e22;"></i> <strong>📌 Real-world use case:</strong> Semantic segmentation with DeepLabV3+ (pre-trained) + custom dataset → adapt with few lines using torchvision.
+    </div>
+    <div style="flex: 1; background: #fff; border-radius: 24px; padding: 1rem 1.3rem; border: 1px solid #eef2f0;">
+      <i class="fas fa-lightbulb"></i> <strong>Algorithm spotlight:</strong> <em>Non-Maximum Suppression (NMS)</em> — reduces redundant bounding boxes in object detection (YOLO, Faster R-CNN).
+    </div>
+  </div>
+  <footer>
+    <i class="fas fa-university"></i> Master of Computer Vision — Interactive Reference | Click any model/algorithm to see applied example & code snippet
+  </footer>
+</div>
+
+<script>
+  $(document).ready(function() {
+
+    // --------------------------------------------------------------
+    // 1) Pre-trained models data (name, description, example usage)
+    const pretrainedModels = [
+      { name: "ResNet-50 (ImageNet)", desc: "Deep residual network, 50 layers. Ideal for classification & feature extraction.", example: "Extract features: `model = torchvision.models.resnet50(pretrained=True); features = model(x)`" },
+      { name: "YOLOv8 (Ultralytics)", desc: "Real-time object detection, instance segmentation. State-of-art speed/accuracy.", example: "`results = model.predict('image.jpg', save=True); boxes = results[0].boxes`" },
+      { name: "DETR (End-to-End)", desc: "Transformer-based object detection. No anchors, direct set prediction.", example: "`model = torch.hub.load('facebookresearch/detr', 'detr_resnet50', pretrained=True)`" },
+      { name: "ViT-B/16 (Vision Transformer)", desc: "Transformer for images, patch embedding + attention.", example: "`from transformers import ViTForImageClassification; model.from_pretrained('google/vit-base-patch16-224')`" },
+      { name: "Mask R-CNN", desc: "Instance segmentation with FPN, predicts masks for each object.", example: "`model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True); masks = model(img)[0]['masks']`" }
+    ];
+
+    // 2) Algorithms data (explain + CV algorithm)
+    const algorithms = [
+      { name: "Convolutional Neural Networks (CNN)", desc: "Core building block for feature extraction using learnable filters.", example: "Keras: `Conv2D(32, (3,3), activation='relu')` — extracts edges/textures." },
+      { name: "Siamese Networks", desc: "One-shot learning, similarity comparison for face verification.", example: "Triplet loss: `loss = max(‖f(A)-f(P)‖² - ‖f(A)-f(N)‖² + α, 0)`" },
+      { name: "Feature Pyramid Networks (FPN)", desc: "Multi-scale feature maps for detecting objects at different scales.", example: "Used in RetinaNet, Mask R-CNN to improve small object detection." },
+      { name: "Non-Maximum Suppression (NMS)", desc: "Removes duplicate bounding boxes based on IoU threshold.", example: "`torchvision.ops.nms(boxes, scores, iou_threshold=0.5)`" },
+      { name: "U-Net Architecture", desc: "Encoder-decoder with skip connections for biomedical segmentation.", example: "Used for cell segmentation, satellite image segmentation." },
+      { name: "Attention Mechanisms (CBAM)", desc: "Channel & spatial attention to refine feature maps.", example: "Apply CBAM after residual block to boost accuracy by 2-3%." },
+      { name: "Optical Flow (Lucas-Kanade)", desc: "Motion estimation between frames for video tasks.", example: "OpenCV: `cv2.calcOpticalFlowPyrLK()` for sparse feature tracking." },
+      { name: "Contrastive Learning (SimCLR)", desc: "Self-supervised learning, maximizing agreement between augmentations.", example: "NT-Xent loss, widely used for representation learning without labels." }
+    ];
+
+    // Render pre-trained list
+    function renderPretrained() {
+      const container = $('#pretrainedList');
+      container.empty();
+      pretrainedModels.forEach((model, idx) => {
+        const itemDiv = $('<div class="model-item"></div>');
+        const titleDiv = $(`<div class="model-title" data-idx="pt-${idx}"><span><i class="fas fa-cube"></i> ${model.name}</span> <span class="badge">pre-trained</span> <button class="btn-toggle"><i class="fas fa-chevron-down"></i> example</button></div>`);
+        const exampleDiv = $(`<div class="example-desc" id="pt-ex-${idx}"><strong>📌 Use case:</strong> ${model.desc}<br><strong>🔬 Code example:</strong><div class="code-snip">${model.example}</div></div>`);
+        itemDiv.append(titleDiv);
+        itemDiv.append(exampleDiv);
+        container.append(itemDiv);
+        // Toggle logic
+        titleDiv.find('.btn-toggle').on('click', function(e) {
+          e.stopPropagation();
+          exampleDiv.toggleClass('show');
+          const icon = $(this).find('i');
+          if(exampleDiv.hasClass('show')) icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+          else icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        });
+      });
+      $('#ptCount').text(pretrainedModels.length);
+    }
+
+    // Render algorithms list
+    function renderAlgorithms() {
+      const container = $('#algorithmsList');
+      container.empty();
+      algorithms.forEach((algo, idx) => {
+        const itemDiv = $('<div class="algo-item"></div>');
+        const titleDiv = $(`<div class="algo-title" data-idx="al-${idx}"><span><i class="fas fa-microchip"></i> ${algo.name}</span> <span class="badge">fundamental</span> <button class="btn-toggle"><i class="fas fa-chevron-down"></i> example</button></div>`);
+        const exampleDiv = $(`<div class="example-desc" id="al-ex-${idx}"><strong>🧠 Insight:</strong> ${algo.desc}<br><strong>⚡ Example / pseudo:</strong><div class="code-snip">${algo.example}</div></div>`);
+        itemDiv.append(titleDiv);
+        itemDiv.append(exampleDiv);
+        container.append(itemDiv);
+        titleDiv.find('.btn-toggle').on('click', function(e) {
+          e.stopPropagation();
+          exampleDiv.toggleClass('show');
+          const icon = $(this).find('i');
+          if(exampleDiv.hasClass('show')) icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+          else icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        });
+      });
+      $('#algoCount').text(algorithms.length);
+    }
+
+    renderPretrained();
+    renderAlgorithms();
+
+    // -------------------- TRAINING SIMULATOR (master-level interactive) --------------------
+    let currentEpoch = 0;
+    const totalEpochs = 10;
+    let trainingHistory = { loss: [], acc: [] };
+    let trainingActive = false;
+    let intervalId = null;
+
+    // Simulate loss and accuracy based on epoch (typical decreasing loss, increasing acc)
+    function computeMetrics(epoch) {
+      if(epoch === 0) return { loss: null, acc: null };
+      // realistic improvement: loss from ~2.3 -> 0.35, accuracy from 0.25 -> 0.89
+      let loss = 2.3 * Math.exp(-0.25 * epoch) + 0.15;
+      loss = Math.min(2.3, Math.max(0.12, loss));
+      let acc = 0.22 + 0.68 * (1 - Math.exp(-0.32 * epoch));
+      acc = Math.min(0.91, Math.max(0.22, acc));
+      return { loss: loss.toFixed(3), acc: (acc * 100).toFixed(1) };
+    }
+
+    function updateUIFromEpoch() {
+      const fillPercent = (currentEpoch / totalEpochs) * 100;
+      $('#epochFill').css('width', `${fillPercent}%`);
+      $('#epochDisplay').text(`Epoch ${currentEpoch} / ${totalEpochs}`);
+      if(currentEpoch === 0) {
+        $('#metricsPanel').html(`<span>📉 Loss: -- | 🎯 Accuracy: --%</span><br><small>⏳ Press 'Train 1 Epoch' to start simulation</small>`);
+      } else {
+        const metrics = computeMetrics(currentEpoch);
+        $('#metricsPanel').html(`<span>📉 Loss: ${metrics.loss} | 🎯 Accuracy: ${metrics.acc}%</span><br><small>✅ Master tip: Early stopping based on validation loss</small>`);
+      }
+      // if completed
+      if(currentEpoch === totalEpochs && totalEpochs > 0) {
+        if(trainingActive) stopAutoTraining();
+        $('#trainStepBtn, #trainFullBtn').prop('disabled', false);
+        $('#metricsPanel').append('<div style="color:#2b6e3b; margin-top:6px;">🏁 Training complete! Model converged. 🎉</div>');
+      } else {
+        // enable buttons if not completed
+        $('#trainStepBtn, #trainFullBtn').prop('disabled', false);
+      }
+    }
+
+    function stopAutoTraining() {
+      if(intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      trainingActive = false;
+    }
+
+    function trainOneEpoch() {
+      if(currentEpoch >= totalEpochs) {
+        // already finished
+        if(intervalId) stopAutoTraining();
+        updateUIFromEpoch();
+        return false;
+      }
+      currentEpoch++;
+      updateUIFromEpoch();
+      if(currentEpoch === totalEpochs) {
+        if(intervalId) stopAutoTraining();
+      }
+      return true;
+    }
+
+    function startFullTraining() {
+      if(trainingActive) return;
+      if(currentEpoch >= totalEpochs) {
+        // reset then run ?
+        resetTraining();
+      }
+      trainingActive = true;
+      // Disable manual buttons while auto running
+      $('#trainStepBtn, #trainFullBtn').prop('disabled', true);
+      intervalId = setInterval(() => {
+        if(currentEpoch >= totalEpochs) {
+          stopAutoTraining();
+          $('#trainStepBtn, #trainFullBtn').prop('disabled', false);
+          updateUIFromEpoch();
+          return;
+        }
+        trainOneEpoch();
+        if(currentEpoch >= totalEpochs) {
+          stopAutoTraining();
+          $('#trainStepBtn, #trainFullBtn').prop('disabled', false);
+        }
+      }, 380); // smooth simulation
+    }
+
+    function resetTraining() {
+      stopAutoTraining();
+      currentEpoch = 0;
+      updateUIFromEpoch();
+      $('#trainStepBtn, #trainFullBtn').prop('disabled', false);
+      // remove completion extra messages if any
+      const panelHtml = $('#metricsPanel').html();
+      if(panelHtml.includes("Training complete")) {
+        $('#metricsPanel').html(`<span>📉 Loss: -- | 🎯 Accuracy: --%</span><br><small>⏳ Reset: ready for training simulation</small>`);
+      }
+    }
+
+    // attach event handlers
+    $('#trainStepBtn').on('click', function() {
+      if(trainingActive) {
+        stopAutoTraining();
+        $('#trainStepBtn, #trainFullBtn').prop('disabled', false);
+      }
+      if(currentEpoch >= totalEpochs) {
+        resetTraining();
+      }
+      trainOneEpoch();
+    });
+    $('#trainFullBtn').on('click', function() {
+      if(trainingActive) {
+        stopAutoTraining();
+        $('#trainStepBtn, #trainFullBtn').prop('disabled', false);
+      }
+      if(currentEpoch >= totalEpochs) {
+        resetTraining();
+      }
+      startFullTraining();
+    });
+    $('#resetTrainBtn').on('click', function() {
+      stopAutoTraining();
+      resetTraining();
+    });
+
+    // extra small interactive: tooltip style
+    updateUIFromEpoch();
+
+    // Add additional tooltips / live demo: on any card header simple animations
+    $('.card-header').css('cursor', 'pointer');
+    $('.card-header').on('click', function() {
+      $(this).next('.card-content').slideToggle(150);
+    });
+    // but prevent double collapse for example toggles? we need inner buttons not to propagate
+    $('.btn-toggle').on('click', function(e) {
+      e.stopPropagation();
+    });
+    $('.model-title, .algo-title').on('click', function(e) {
+      if($(e.target).is('.btn-toggle') || $(e.target).closest('.btn-toggle').length) return;
+      $(this).siblings('.example-desc').toggleClass('show');
+      const btnIcon = $(this).find('.btn-toggle i');
+      if($(this).siblings('.example-desc').hasClass('show')) {
+        btnIcon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+      } else {
+        btnIcon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+      }
+    });
+
+    // extra master level: console greetings
+    console.log("CV Master Dashboard ready | Explore pre-trained models, classic algorithms & training simulation");
+  });
+</script>
+</body>
+</html>
