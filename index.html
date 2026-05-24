@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Nexus Dashboard | System Control & Data Core</title>
+    <!-- Google Fonts & Font Awesome 6 (free icons) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e9eff7 0%, #dce3ec 100%);
+            min-height: 100vh;
+            padding: 2rem 2rem 3rem 2rem;
+        }
+
+        /* main container */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* header area */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(4px);
+            border-radius: 2rem;
+            padding: 1rem 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+
+        .title-section h1 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #1A2A3F, #1E3A5F);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .title-section p {
+            font-size: 0.85rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #1e466e;
+            color: white;
+            box-shadow: 0 4px 10px rgba(30,70,110,0.2);
+        }
+
+        .btn-primary:hover {
+            background: #0f3553;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #2c5a7a;
+            color: #1e466e;
+        }
+
+        .btn-outline:hover {
+            background: #eef3fc;
+        }
+
+        .btn-reset {
+            background: #f1f3f7;
+            color: #a03e3e;
+            border: 1px solid #e2c2c2;
+        }
+
+        /* stats cards row */
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 180px;
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: 0.2s;
+            border: 1px solid rgba(0,0,0,0.03);
+            backdrop-filter: blur(2px);
+        }
+
+        .stat-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #5b6e8c;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #1e2f3f;
+            line-height: 1.2;
+        }
+
+        .stat-unit {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #6c7e9e;
+        }
+
+        /* main grid: left table and right form */
+        .dashboard-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .system-table-section {
+            flex: 2;
+            min-width: 280px;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .config-panel {
+            flex: 1.2;
+            min-width: 280px;
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid #2c7ab1;
+            padding-left: 14px;
+            color: #1f3b4c;
+        }
+
+        .systems-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .systems-table th, .systems-table td {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid #e9edf2;
+        }
+
+        .systems-table th {
+            font-weight: 600;
+            color: #2c4e6e;
+            font-size: 0.85rem;
+            background: #fafcff;
+        }
+
+        .systems-table tr:hover td {
+            background-color: #f8fafd;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #eef2f7;
+            color: #2c5a7a;
+        }
+
+        .status-badge.active {
+            background: #dff0e4;
+            color: #1f7840;
+        }
+
+        .status-badge.inactive {
+            background: #ffe6e5;
+            color: #b13e3e;
+        }
+
+        .delete-icon {
+            color: #b76e6e;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+
+        .delete-icon:hover {
+            color: #d43f3f;
+            transform: scale(1.1);
+        }
+
+        .edit-icon {
+            color: #5f8ab6;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .edit-icon:hover {
+            color: #2c5a7a;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #2c4b6e;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid #cddae9;
+            background: #ffffff;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2c7ab1;
+            box-shadow: 0 0 0 3px rgba(44,122,177,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .alert-message {
+            background: #e2f0fa;
+            padding: 8px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        footer {
+            margin-top: 2.5rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #617e9e;
+        }
+
+        @media (max-width: 780px) {
+            body { padding: 1rem; }
+            .stat-value { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="title-section">
+            <h1><i class="fas fa-chart-line" style="color: #2c7ab1;"></i>  Nexus System Core</h1>
+            <p>persistent dashboard · inline data storage (localStorage)</p>
+        </div>
+        <div class="action-buttons">
+            <button id="exportJsonBtn" class="btn btn-outline"><i class="fas fa-download"></i> Export Data</button>
+            <button id="resetDemoDataBtn" class="btn btn-reset"><i class="fas fa-undo-alt"></i> Reset Demo</button>
+        </div>
+    </div>
+
+    <!-- Stats cards (dynamic based on stored data) -->
+    <div class="stats-row">
+        <div class="stat-card"><div class="stat-title"><i class="fas fa-microchip"></i> Total Systems</div><div class="stat-value" id="totalSystemsStat">0</div></div>
+        <div class="stat-card"><div class="stat-title"><i class="fas fa-check-circle"></i> Active Nodes</div><div class="stat-value" id="activeSystemsStat">0</div></div>
+        <div class="stat-card"><div class="stat-title"><i class="fas fa-chart-simple"></i> Avg. CPU Load</div><div class="stat-value" id="avgCpuStat">0<span class="stat-unit">%</span></div></div>
+        <div class="stat-card"><div class="stat-title"><i class="fas fa-memory"></i> Total Memory</div><div class="stat-value" id="totalMemoryStat">0<span class="stat-unit"> GB</span></div></div>
+    </div>
+
+    <!-- Main grid: table + configuration form -->
+    <div class="dashboard-grid">
+        <!-- Systems Table -->
+        <div class="system-table-section">
+            <div class="section-title"><i class="fas fa-server"></i> Managed Systems</div>
+            <div style="overflow-x: auto;">
+                <table class="systems-table" id="systemsTable">
+                    <thead>
+                        <tr><th>System Name</th><th>Status</th><th>CPU (%)</th><th>Memory (GB)</th><th style="width:70px">Actions</th></tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="5" style="text-align:center;">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert-message" id="tableFeedbackMsg"><i class="fas fa-info-circle"></i> Click <i class="fas fa-pen"></i> to edit or <i class="fas fa-trash-alt"></i> to delete.</div>
+        </div>
+
+        <!-- Add/Edit System Panel -->
+        <div class="config-panel">
+            <div class="section-title"><i class="fas fa-sliders-h"></i> System Configurator</div>
+            <form id="systemForm">
+                <input type="hidden" id="editIndex" value="">
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> System Name</label>
+                    <input type="text" id="sysName" placeholder="e.g., Alpha-Node, DB-Core" required maxlength="40">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-power-off"></i> Status</label>
+                    <select id="sysStatus">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-tachometer-alt"></i> CPU Load (%)</label>
+                    <input type="number" id="sysCpu" step="1" min="0" max="100" value="25" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-database"></i> Memory (GB)</label>
+                    <input type="number" id="sysMemory" step="0.5" min="0.5" max="128" value="8.0" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="saveBtn" class="btn btn-primary" style="flex:2"><i class="fas fa-save"></i> Save System</button>
+                    <button type="button" id="cancelEditBtn" class="btn btn-outline" style="flex:1"><i class="fas fa-times"></i> Cancel</button>
+                </div>
+            </form>
+            <div id="formStatusMsg" class="alert-message" style="background:#f4f9fe;"></div>
+        </div>
+    </div>
+    <footer>⚡ Data persists automatically within this browser (localStorage) | All metrics update in real-time</footer>
+</div>
+
+<script>
+    // -------------------------------
+    // SYSTEM DATA STORAGE (in-page)
+    // -------------------------------
+    let systemsData = [];   // local array mirroring storage
+
+    // DOM elements
+    const tableBody = $('#tableBody');
+    const totalSystemsSpan = $('#totalSystemsStat');
+    const activeSystemsSpan = $('#activeSystemsStat');
+    const avgCpuSpan = $('#avgCpuStat');
+    const totalMemorySpan = $('#totalMemoryStat');
+    const sysNameInput = $('#sysName');
+    const sysStatusSelect = $('#sysStatus');
+    const sysCpuInput = $('#sysCpu');
+    const sysMemoryInput = $('#sysMemory');
+    const editIndexHidden = $('#editIndex');
+    const systemForm = $('#systemForm');
+    const cancelEditBtn = $('#cancelEditBtn');
+    const formStatusMsg = $('#formStatusMsg');
+    const tableFeedbackMsg = $('#tableFeedbackMsg');
+
+    // Helper: load from localStorage
+    function loadDataFromStorage() {
+        const stored = localStorage.getItem('nexus_systems_data');
+        if (stored && stored.length > 0) {
+            try {
+                systemsData = JSON.parse(stored);
+                if (!Array.isArray(systemsData)) systemsData = [];
+            } catch(e) { systemsData = []; }
+        }
+        // if empty or invalid, seed with demo data (vivid example)
+        if (!systemsData || systemsData.length === 0) {
+            systemsData = [
+                { name: "Alpha-Mainframe", status: "active", cpu: 32, memory: 16.0 },
+                { name: "Beta-DataLake", status: "active", cpu: 58, memory: 32.5 },
+                { name: "Gamma-Edge", status: "inactive", cpu: 2, memory: 4.0 },
+                { name: "Delta-Analytics", status: "maintenance", cpu: 12, memory: 8.0 },
+                { name: "Epsilon-Storage", status: "active", cpu: 45, memory: 24.0 }
+            ];
+            saveToLocalStorage();
+        }
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('nexus_systems_data', JSON.stringify(systemsData));
+    }
+
+    // render stats cards
+    function updateStats() {
+        const total = systemsData.length;
+        let activeCount = 0;
+        let totalCpu = 0;
+        let totalMem = 0;
+        systemsData.forEach(sys => {
+            if (sys.status === 'active') activeCount++;
+            totalCpu += sys.cpu;
+            totalMem += sys.memory;
+        });
+        const avgCpu = total === 0 ? 0 : (totalCpu / total).toFixed(1);
+        totalSystemsSpan.text(total);
+        activeSystemsSpan.text(activeCount);
+        avgCpuSpan.text(avgCpu);
+        totalMemorySpan.text(totalMem.toFixed(1));
+    }
+
+    // render table rows with inline actions (edit / delete)
+    function renderTable() {
+        if (!systemsData.length) {
+            tableBody.html('<tr><td colspan="5" style="text-align:center; padding: 2rem;">📭 No systems defined. Add one using the config panel.</td></tr>');
+            updateStats();
+            return;
+        }
+        let html = '';
+        systemsData.forEach((sys, idx) => {
+            let statusClass = '';
+            let statusLabel = '';
+            if (sys.status === 'active') { statusClass = 'active'; statusLabel = 'Active'; }
+            else if (sys.status === 'inactive') { statusClass = 'inactive'; statusLabel = 'Inactive'; }
+            else { statusClass = 'active'; statusLabel = 'Maintenance'; statusClass = ''; } // maintenance style neutral
+
+            html += `<tr>
+                        <td><i class="fas fa-desktop" style="color:#4b7aa1; margin-right:8px;"></i>${escapeHtml(sys.name)}</td>
+                        <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                        <td>${sys.cpu}%</td>
+                        <td>${sys.memory} GB</td>
+                        <td>
+                            <i class="fas fa-pen edit-icon" data-index="${idx}" title="Edit System"></i>
+                            <i class="fas fa-trash-alt delete-icon" data-index="${idx}" title="Delete System"></i>
+                        </td>
+                    </tr>`;
+        });
+        tableBody.html(html);
+        updateStats();
+
+        // attach dynamic events for edit/delete (using event delegation)
+        $('.edit-icon').off('click').on('click', function() {
+            const index = $(this).data('index');
+            populateFormForEdit(index);
+        });
+        $('.delete-icon').off('click').on('click', function() {
+            const index = $(this).data('index');
+            if (confirm(`⚠️ Permanently delete system "${systemsData[index].name}"?`)) {
+                systemsData.splice(index, 1);
+                saveToLocalStorage();
+                renderTable();
+                clearForm();
+                formStatusMsg.html('<i class="fas fa-check-circle"></i> System removed. Changes saved.');
+                setTimeout(() => { if(formStatusMsg.length) formStatusMsg.html('<i class="fas fa-info-circle"></i> Ready to add/edit systems.'); }, 2000);
+            }
+        });
+    }
+
+    // simple escape to avoid XSS
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>]/g, function(m) {
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // populate for edit
+    function populateFormForEdit(index) {
+        const sys = systemsData[index];
+        if (!sys) return;
+        sysNameInput.val(sys.name);
+        sysStatusSelect.val(sys.status);
+        sysCpuInput.val(sys.cpu);
+        sysMemoryInput.val(sys.memory);
+        editIndexHidden.val(index);
+        formStatusMsg.html(`<i class="fas fa-edit"></i> Editing "${sys.name}" — update & save.`);
+        // change button effect? fine
+        $('#saveBtn').html('<i class="fas fa-pen"></i> Update System');
+    }
+
+    function clearForm() {
+        systemForm[0].reset();
+        editIndexHidden.val('');
+        sysNameInput.val('');
+        sysStatusSelect.val('active');
+        sysCpuInput.val(25);
+        sysMemoryInput.val(8);
+        $('#saveBtn').html('<i class="fas fa-save"></i> Save System');
+        formStatusMsg.html('<i class="fas fa-info-circle"></i> Add a new system or edit existing.');
+    }
+
+    // add or update system
+    function saveSystem(event) {
+        event.preventDefault();
+        const name = sysNameInput.val().trim();
+        if (!name) {
+            formStatusMsg.html('<i class="fas fa-exclamation-triangle"></i> System name cannot be empty.');
+            return;
+        }
+        const status = sysStatusSelect.val();
+        let cpu = parseFloat(sysCpuInput.val());
+        let memory = parseFloat(sysMemoryInput.val());
+        if (isNaN(cpu) || cpu < 0) cpu = 0;
+        if (cpu > 100) cpu = 100;
+        if (isNaN(memory) || memory <= 0) memory = 0.5;
+        if (memory > 256) memory = 256;
+
+        const editIdx = editIndexHidden.val();
+        if (editIdx !== "") {
+            const idx = parseInt(editIdx);
+            if (!isNaN(idx) && idx >= 0 && idx < systemsData.length) {
+                // prevent duplicate name if changed except itself
+                const duplicate = systemsData.some((sys, i) => i !== idx && sys.name.toLowerCase() === name.toLowerCase());
+                if (duplicate) {
+                    formStatusMsg.html('<i class="fas fa-ban"></i> Another system with same name exists!');
+                    return;
+                }
+                systemsData[idx] = { name, status, cpu, memory };
+                formStatusMsg.html(`<i class="fas fa-check"></i> System "${name}" updated.`);
+                clearForm();
+                saveToLocalStorage();
+                renderTable();
+            } else {
+                formStatusMsg.html('Invalid edit reference, please cancel and retry.');
+            }
+        } else {
+            // create new - check duplicate name
+            const exists = systemsData.some(sys => sys.name.toLowerCase() === name.toLowerCase());
+            if (exists) {
+                formStatusMsg.html('<i class="fas fa-exclamation-circle"></i> System name already exists. Choose unique name.');
+                return;
+            }
+            const newSystem = { name, status, cpu, memory };
+            systemsData.push(newSystem);
+            saveToLocalStorage();
+            renderTable();
+            clearForm();
+            formStatusMsg.html(`<i class="fas fa-plus-circle"></i> Added new system: "${name}".`);
+        }
+        setTimeout(() => {
+            if(formStatusMsg.length && !formStatusMsg.html().includes('Edit')) {
+                if (editIndexHidden.val() === "") formStatusMsg.html('<i class="fas fa-info-circle"></i> Ready to add/edit systems.');
+            }
+        }, 1800);
+    }
+
+    // reset to original demo dataset
+    function resetToDemoData() {
+        if (confirm('⚠️ Reset all data to default demo systems? Any unsaved changes will be lost.')) {
+            systemsData = [
+                { name: "Alpha-Mainframe", status: "active", cpu: 32, memory: 16.0 },
+                { name: "Beta-DataLake", status: "active", cpu: 58, memory: 32.5 },
+                { name: "Gamma-Edge", status: "inactive", cpu: 2, memory: 4.0 },
+                { name: "Delta-Analytics", status: "maintenance", cpu: 12, memory: 8.0 },
+                { name: "Epsilon-Storage", status: "active", cpu: 45, memory: 24.0 }
+            ];
+            saveToLocalStorage();
+            renderTable();
+            clearForm();
+            formStatusMsg.html('<i class="fas fa-undo-alt"></i> Reset to default systems completed.');
+            tableFeedbackMsg.html('<i class="fas fa-check-circle"></i> Demo data restored. You can edit/delete freely.');
+            setTimeout(() => {
+                if(tableFeedbackMsg.length) tableFeedbackMsg.html('<i class="fas fa-info-circle"></i> Click <i class="fas fa-pen"></i> to edit or <i class="fas fa-trash-alt"></i> to delete.');
+            }, 2500);
+        }
+    }
+
+    // export json data to downloadable file
+    function exportToJSON() {
+        const dataStr = JSON.stringify(systemsData, null, 2);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = $('<a>', { href: url, download: 'nexus_dashboard_export.json', style: 'display:none' })[0];
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        formStatusMsg.html('<i class="fas fa-file-export"></i> Exported systems data as JSON.');
+        setTimeout(() => { if(formStatusMsg.length && editIndexHidden.val() === "") formStatusMsg.html('<i class="fas fa-info-circle"></i> Ready for new entries'); }, 1500);
+    }
+
+    // Cancel edit: just clears form
+    function cancelEdit() {
+        clearForm();
+        formStatusMsg.html('<i class="fas fa-ban"></i> Edit cancelled. You can add new system.');
+    }
+
+    // initial setup and event bindings
+    $(document).ready(function() {
+        loadDataFromStorage();
+        renderTable();
+        // bind form submit
+        systemForm.on('submit', saveSystem);
+        cancelEditBtn.on('click', cancelEdit);
+        $('#resetDemoDataBtn').on('click', resetToDemoData);
+        $('#exportJsonBtn').on('click', exportToJSON);
+
+        // extra initial clear form message
+        clearForm(); // ensures placeholders and reset button state
+        if(systemsData.length) formStatusMsg.html('<i class="fas fa-check"></i> Dashboard active. Edit or add systems.');
+        else formStatusMsg.html('<i class="fas fa-plus"></i> Click Save to create first system.');
+        // sync stats after all
+        updateStats();
+    });
+</script>
+</body>
+</html>
