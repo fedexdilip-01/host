@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>SmartStock | Inventory Manager</title>
+  <!-- Google Fonts + Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e9f0fc 0%, #d9e4f5 100%);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    /* main container */
+    .inventory-dashboard {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(8px);
+      padding: 1rem 2rem;
+      border-radius: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    .logo h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(125deg, #1F2B48, #2c3e66);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+    .logo p {
+      font-size: 0.8rem;
+      color: #2c3e66;
+      font-weight: 500;
+    }
+    .stats-badge {
+      background: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      display: flex;
+      gap: 1.8rem;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: #1F2B48;
+    }
+    .stat-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: #5a6e8a;
+      letter-spacing: 0.3px;
+    }
+
+    /* card & grid */
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(2px);
+      border-radius: 1.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .input-group label {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: #1F2B48;
+      letter-spacing: 0.3px;
+    }
+    .input-group input, .input-group select {
+      padding: 0.8rem 1rem;
+      border: 1px solid #cddae9;
+      border-radius: 1rem;
+      font-size: 0.9rem;
+      background: white;
+      transition: 0.2s;
+      outline: none;
+    }
+    .input-group input:focus, .input-group select:focus {
+      border-color: #3b6ea0;
+      box-shadow: 0 0 0 3px rgba(59,110,160,0.2);
+    }
+
+    .btn {
+      border: none;
+      padding: 0.75rem 1.4rem;
+      border-radius: 2rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #eef2f8;
+      color: #1e2f44;
+    }
+    .btn-primary {
+      background: #1F2B48;
+      color: white;
+      box-shadow: 0 2px 8px rgba(31,43,72,0.2);
+    }
+    .btn-primary:hover {
+      background: #2c3e66;
+      transform: translateY(-2px);
+    }
+    .btn-danger {
+      background: #ffe2e2;
+      color: #b13e3e;
+    }
+    .btn-danger:hover {
+      background: #f5c0c0;
+    }
+    .btn-warning {
+      background: #fff0db;
+      color: #c56a0b;
+    }
+    .btn-warning:hover {
+      background: #ffe2bf;
+    }
+    .btn-success {
+      background: #e0f3e4;
+      color: #2b6e3c;
+    }
+    .action-btns {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    /* table container */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 0.8rem;
+      border-radius: 1.5rem;
+    }
+    .inventory-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .inventory-table th {
+      text-align: left;
+      padding: 1rem 0.8rem;
+      background: #f0f4fa;
+      color: #1a2c44;
+      font-weight: 600;
+    }
+    .inventory-table td {
+      padding: 1rem 0.8rem;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+    .inventory-table tr:hover {
+      background: #f9fbfe;
+    }
+    .low-stock-badge {
+      background: #fef3e8;
+      color: #c26d2e;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      display: inline-block;
+    }
+    .stock-normal {
+      font-weight: 500;
+    }
+    .action-icons i {
+      margin: 0 5px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: 0.1s;
+      padding: 6px;
+      border-radius: 40px;
+    }
+    .fa-edit {
+      color: #3b6ea0;
+    }
+    .fa-trash-alt {
+      color: #c25a5a;
+    }
+    .fa-save {
+      color: #2e7d5e;
+    }
+    .action-icons i:hover {
+      background: rgba(0,0,0,0.05);
+      transform: scale(1.05);
+    }
+    .edit-input {
+      width: 90px;
+      padding: 0.4rem;
+      border-radius: 12px;
+      border: 1px solid #bdd4ff;
+      text-align: center;
+    }
+    .search-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 3rem;
+      padding: 0.2rem 0.8rem;
+      border: 1px solid #cddae9;
+    }
+    .search-box i {
+      color: #8b9bb0;
+    }
+    .search-box input {
+      border: none;
+      padding: 0.6rem 0.8rem;
+      background: transparent;
+      width: 220px;
+      outline: none;
+    }
+    .empty-row td {
+      text-align: center;
+      padding: 2.5rem;
+      color: #64748b;
+      font-style: italic;
+    }
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.7rem;
+      color: #4b6589;
+    }
+    @media (max-width: 700px) {
+      body { padding: 1rem; }
+      .stats-badge { width: 100%; justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+<div class="inventory-dashboard">
+  <div class="header">
+    <div class="logo">
+      <h1><i class="fas fa-boxes" style="color:#2c3e66;"></i> SmartStock</h1>
+      <p>inventory management · persistent in-page storage</p>
+    </div>
+    <div class="stats-badge">
+      <div class="stat"><span class="stat-value" id="totalItemsCount">0</span><div class="stat-label">Total SKUs</div></div>
+      <div class="stat"><span class="stat-value" id="totalValueCount">0</span><div class="stat-label">Total Value ($)</div></div>
+      <div class="stat"><span class="stat-value" id="lowStockCount">0</span><div class="stat-label">Low Stock</div></div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Product Card -->
+  <div class="card" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 1rem;"><i class="fas fa-cube"></i> Manage inventory</h3>
+    <div class="form-grid">
+      <div class="input-group">
+        <label>Product Name *</label>
+        <input type="text" id="productName" placeholder="e.g. UltraBoost shoes" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>SKU (unique)</label>
+        <input type="text" id="productSku" placeholder="SKU-001" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>Quantity *</label>
+        <input type="number" id="productQty" placeholder="0" value="1" min="0">
+      </div>
+      <div class="input-group">
+        <label>Price ($) *</label>
+        <input type="number" step="0.01" id="productPrice" placeholder="0.00" value="0.00" min="0">
+      </div>
+      <div class="input-group">
+        <label>Category</label>
+        <select id="productCategory">
+          <option value="Electronics">Electronics</option>
+          <option value="Fashion">Fashion</option>
+          <option value="Groceries">Groceries</option>
+          <option value="Tools">Tools</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Low stock threshold</label>
+        <input type="number" id="lowStockThreshold" placeholder="threshold" value="5" min="1">
+      </div>
+    </div>
+    <div class="action-btns">
+      <button id="addProductBtn" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Add Product</button>
+      <button id="updateProductBtn" class="btn btn-success" style="display: none;"><i class="fas fa-sync-alt"></i> Update Item</button>
+      <button id="cancelEditBtn" class="btn" style="display: none;"><i class="fas fa-times"></i> Cancel</button>
+      <span style="flex:1"></span>
+      <button id="clearAllBtn" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Clear All Data</button>
+    </div>
+    <div id="formMessage" style="margin-top: 12px; font-size:0.8rem; font-weight:500;"></div>
+  </div>
+
+  <!-- Search & listing -->
+  <div class="card">
+    <div class="search-bar">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search by name, SKU or category...">
+      </div>
+      <div>
+        <button id="exportReportBtn" class="btn" style="background:#eef2fa;"><i class="fas fa-download"></i> Export CSV</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="inventory-table" id="inventoryTable">
+        <thead>
+          <tr><th>SKU</th><th>Product</th><th>Category</th><th>Qty</th><th>Price ($)</th><th>Total Value</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr class="empty-row"><td colspan="8">No products yet. Add your first item!</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <footer><i class="fas fa-database"></i> Data persists inside browser (localStorage) · fully client-side</footer>
+</div>
+
+<script>
+  // ---------- INVENTORY DATA MODEL (stored in localStorage) ----------
+  let inventory = [];        // array of objects
+  let editMode = false;
+  let editId = null;
+
+  // Helper: load from localStorage
+  function loadInventoryFromStorage() {
+    const stored = localStorage.getItem("smartstock_inventory");
+    if(stored) {
+      try {
+        inventory = JSON.parse(stored);
+      } catch(e) { inventory = []; }
+    } else {
+      // demo initial data for better first impression
+      inventory = [
+        { id: "inv_1", name: "Wireless Mouse", sku: "MOU-102", quantity: 23, price: 24.99, category: "Electronics", threshold: 5 },
+        { id: "inv_2", name: "Mechanical Keyboard", sku: "KEY-440", quantity: 8, price: 79.50, category: "Electronics", threshold: 5 },
+        { id: "inv_3", name: "Cotton T-Shirt", sku: "APP-202", quantity: 3, price: 15.99, category: "Fashion", threshold: 5 },
+        { id: "inv_4", name: "Stainless Bottle", sku: "HOM-511", quantity: 12, price: 12.45, category: "Tools", threshold: 5 }
+      ];
+      saveInventoryToStorage();
+    }
+    refreshAllUI();
+  }
+
+  function saveInventoryToStorage() {
+    localStorage.setItem("smartstock_inventory", JSON.stringify(inventory));
+  }
+
+  // Helper: generate unique ID
+  function generateId() {
+    return 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+  }
+
+  // refresh UI: update table, stats, lowstock count, total value
+  function refreshAllUI() {
+    renderTable();
+    updateStats();
+    resetForm();
+  }
+
+  function updateStats() {
+    const totalItems = inventory.length;
+    const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const lowStockThresholdGlobal = (item) => {
+      const thresh = item.threshold !== undefined ? item.threshold : 5;
+      return item.quantity <= thresh;
+    };
+    const lowStockCount = inventory.filter(item => lowStockThresholdGlobal(item)).length;
+    $('#totalItemsCount').text(totalItems);
+    $('#totalValueCount').text(totalValue.toFixed(2));
+    $('#lowStockCount').text(lowStockCount);
+  }
+
+  // render with search filtering
+  function renderTable() {
+    const searchTerm = $('#searchInput').val().toLowerCase();
+    let filtered = [...inventory];
+    if(searchTerm !== "") {
+      filtered = inventory.filter(item => 
+        item.name.toLowerCase().includes(searchTerm) || 
+        item.sku.toLowerCase().includes(searchTerm) || 
+        item.category.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    const tbody = $('#tableBody');
+    if(filtered.length === 0) {
+      tbody.html('<tr class="empty-row"><td colspan="8">📦 No matching products found. Add new or clear search.</td></tr>');
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(item => {
+      const totalVal = (item.quantity * item.price).toFixed(2);
+      const threshold = item.threshold !== undefined ? item.threshold : 5;
+      const isLowStock = item.quantity <= threshold;
+      const stockStatus = isLowStock ? `<span class="low-stock-badge"><i class="fas fa-exclamation-triangle"></i> Low (≤${threshold})</span>` : `<span class="stock-normal">✔ In Stock</span>`;
+      // inline edit mode? not in main table unless we trigger separate edit row? we have dedicated edit via selecting product. Better to use edit button that populates form
+      // We'll use action buttons: edit & delete.
+      html += `<tr data-id="${item.id}">
+        <td><strong>${escapeHtml(item.sku)}</strong></td>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${escapeHtml(item.category)}</td>
+        <td>${item.quantity}</td>
+        <td>$${item.price.toFixed(2)}</td>
+        <td>$${totalVal}</td>
+        <td>${stockStatus}</td>
+        <td class="action-icons">
+          <i class="fas fa-edit" data-action="edit" data-id="${item.id}" title="Edit product"></i>
+          <i class="fas fa-trash-alt" data-action="delete" data-id="${item.id}" title="Delete product"></i>
+        </td>
+      </tr>`;
+    });
+    tbody.html(html);
+  }
+
+  // simple escape
+  function escapeHtml(str) {
+    if(!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if(m === '&') return '&amp;';
+      if(m === '<') return '&lt;';
+      if(m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // reset add form & clear edit mode
+  function resetForm() {
+    $('#productName').val('');
+    $('#productSku').val('');
+    $('#productQty').val(1);
+    $('#productPrice').val(0.00);
+    $('#productCategory').val('Electronics');
+    $('#lowStockThreshold').val(5);
+    editMode = false;
+    editId = null;
+    $('#addProductBtn').show();
+    $('#updateProductBtn').hide();
+    $('#cancelEditBtn').hide();
+    $('#formMessage').html('').removeClass('text-danger').addClass('');
+  }
+
+  function setFormForEdit(product) {
+    $('#productName').val(product.name);
+    $('#productSku').val(product.sku);
+    $('#productQty').val(product.quantity);
+    $('#productPrice').val(product.price);
+    $('#productCategory').val(product.category);
+    $('#lowStockThreshold').val(product.threshold !== undefined ? product.threshold : 5);
+    editMode = true;
+    editId = product.id;
+    $('#addProductBtn').hide();
+    $('#updateProductBtn').show();
+    $('#cancelEditBtn').show();
+    $('#formMessage').html('✏️ Editing product: ' + escapeHtml(product.name)).css('color','#1e6f5c');
+  }
+
+  // add product
+  function addProduct() {
+    const name = $('#productName').val().trim();
+    const sku = $('#productSku').val().trim();
+    let quantity = parseInt($('#productQty').val(), 10);
+    let price = parseFloat($('#productPrice').val());
+    const category = $('#productCategory').val();
+    let threshold = parseInt($('#lowStockThreshold').val(), 10);
+
+    if(!name) { showMessage('Product name is required', 'error'); return; }
+    if(isNaN(quantity) || quantity < 0) quantity = 0;
+    if(isNaN(price) || price < 0) price = 0;
+    if(isNaN(threshold) || threshold < 1) threshold = 1;
+
+    // sku uniqueness validation (optional, but we want to avoid duplicate SKUs)
+    if(sku !== "") {
+      const existingSku = inventory.find(item => item.sku.toLowerCase() === sku.toLowerCase());
+      if(existingSku) {
+        showMessage(`SKU "${sku}" already exists! Use unique SKU.`, 'error');
+        return;
+      }
+    }
+
+    const newId = generateId();
+    const finalSku = sku === "" ? `SKU-${newId.slice(-6)}` : sku;
+    const newProduct = {
+      id: newId,
+      name: name,
+      sku: finalSku,
+      quantity: quantity,
+      price: price,
+      category: category,
+      threshold: threshold
+    };
+    inventory.push(newProduct);
+    saveInventoryToStorage();
+    refreshAllUI();
+    showMessage(`✅ "${name}" added successfully!`, 'success');
+  }
+
+  // update existing product
+  function updateProductHandler() {
+    if(!editMode || !editId) {
+      showMessage('No product selected for update', 'error');
+      return;
+    }
+    const name = $('#productName').val().trim();
+    const sku = $('#productSku').val().trim();
+    let quantity = parseInt($('#productQty').val(), 10);
+    let price = parseFloat($('#productPrice').val());
+    const category = $('#productCategory').val();
+    let threshold = parseInt($('#lowStockThreshold').val(), 10);
+    if(!name) { showMessage('Product name required', 'error'); return; }
+    if(isNaN(quantity)) quantity = 0;
+    if(isNaN(price)) price = 0;
+    if(isNaN(threshold)) threshold = 5;
+
+    const index = inventory.findIndex(p => p.id === editId);
+    if(index === -1) { showMessage('Product not found, reload', 'error'); resetForm(); refreshAllUI(); return; }
+
+    // SKU uniqueness check ignoring current product
+    if(sku !== "") {
+      const duplicate = inventory.find(p => p.sku.toLowerCase() === sku.toLowerCase() && p.id !== editId);
+      if(duplicate) {
+        showMessage(`SKU "${sku}" already used by another product`, 'error');
+        return;
+      }
+    }
+    const finalSku = sku === "" ? inventory[index].sku : sku;
+    inventory[index] = {
+      ...inventory[index],
+      name: name,
+      sku: finalSku,
+      quantity: quantity,
+      price: price,
+      category: category,
+      threshold: threshold
+    };
+    saveInventoryToStorage();
+    refreshAllUI();
+    showMessage(`✏️ "${name}" updated successfully`, 'success');
+    resetForm();
+  }
+
+  function deleteProduct(id) {
+    const product = inventory.find(p => p.id === id);
+    if(!product) return;
+    if(confirm(`Delete "${product.name}" (${product.sku}) ? This action cannot be undone.`)) {
+      inventory = inventory.filter(p => p.id !== id);
+      saveInventoryToStorage();
+      refreshAllUI();
+      if(editMode && editId === id) resetForm();
+      showMessage(`🗑️ Deleted ${product.name}`, 'info');
+    }
+  }
+
+  function clearAllData() {
+    if(inventory.length === 0) { showMessage('Inventory already empty', 'info'); return; }
+    if(confirm('⚠️ DANGER: This will delete ALL products from inventory. Are you sure?')) {
+      inventory = [];
+      saveInventoryToStorage();
+      refreshAllUI();
+      resetForm();
+      showMessage('All inventory cleared.', 'info');
+    }
+  }
+
+  function showMessage(msg, type) {
+    const msgDiv = $('#formMessage');
+    msgDiv.html(msg);
+    if(type === 'error') msgDiv.css('color', '#bc4e4e');
+    else if(type === 'success') msgDiv.css('color', '#2a7a42');
+    else msgDiv.css('color', '#4b6a9b');
+    setTimeout(() => {
+      if($('#formMessage').html() === msg) $('#formMessage').html('');
+    }, 2800);
+  }
+
+  // export CSV (full current inventory)
+  function exportToCSV() {
+    if(inventory.length === 0) { alert('No inventory data to export'); return; }
+    let csvRows = [["SKU","Product Name","Category","Quantity","Price ($)","Total Value($)","Low Stock Threshold"]];
+    for(let item of inventory) {
+      const total = (item.quantity * item.price).toFixed(2);
+      csvRows.push([
+        `"${item.sku}"`,
+        `"${item.name}"`,
+        `"${item.category}"`,
+        item.quantity,
+        item.price.toFixed(2),
+        total,
+        item.threshold !== undefined ? item.threshold : 5
+      ]);
+    }
+    const csvContent = csvRows.map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute("download", "smartstock_inventory.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showMessage('📎 Inventory exported as CSV', 'success');
+  }
+
+  // Event listeners (jQuery)
+  $(document).ready(function() {
+    loadInventoryFromStorage();
+
+    // table actions dynamic (edit & delete) using event delegation
+    $('#tableBody').on('click', 'i[data-action="edit"]', function() {
+      const prodId = $(this).data('id');
+      const product = inventory.find(p => p.id === prodId);
+      if(product) setFormForEdit(product);
+      else showMessage('Error loading product', 'error');
+    });
+    $('#tableBody').on('click', 'i[data-action="delete"]', function() {
+      const prodId = $(this).data('id');
+      deleteProduct(prodId);
+    });
+
+    $('#addProductBtn').on('click', addProduct);
+    $('#updateProductBtn').on('click', updateProductHandler);
+    $('#cancelEditBtn').on('click', resetForm);
+    $('#clearAllBtn').on('click', clearAllData);
+    $('#exportReportBtn').on('click', exportToCSV);
+    $('#searchInput').on('keyup', function() { renderTable(); });
+
+    // Hot fix: reset update mode if needed after any external action
+    $('#inventoryTable').on('click', function() { /* just to avoid unintended */ });
+  });
+</script>
+</body>
+</html>
