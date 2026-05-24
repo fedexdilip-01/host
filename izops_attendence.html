@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FaceNet Pro | AI Facial Attendance System</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- jQuery & face-api.js (FaceNet-like embeddings) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        /* main container */
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* header */
+        .header {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .logo h1 {
+            color: #facc15;
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .logo span {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 400;
+        }
+        .stats-badge {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .stat-card {
+            background: rgba(0,0,0,0.4);
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            text-align: center;
+        }
+        .stat-card i {
+            color: #facc15;
+            margin-right: 0.5rem;
+        }
+        .stat-card span {
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        /* two column layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 1.8rem;
+        }
+
+        /* cards */
+        .card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 1.8rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.3);
+        }
+        .card-header {
+            padding: 1.2rem 1.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.3);
+        }
+        .card-header h2 {
+            color: #e2e8f0;
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* video container */
+        .video-wrapper {
+            position: relative;
+            background: #00000066;
+            border-radius: 1.2rem;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+            border: 2px solid #334155;
+        }
+        video, #faceCanvas {
+            width: 100%;
+            border-radius: 1rem;
+            display: block;
+        }
+        #faceCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .cam-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        button {
+            background: linear-gradient(95deg, #3b82f6, #2563eb);
+            border: none;
+            padding: 0.7rem 1.4rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+        button.danger {
+            background: #dc2626;
+        }
+        button.success {
+            background: #10b981;
+        }
+        button.warning {
+            background: #f59e0b;
+        }
+        .input-group {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            border-radius: 2rem;
+            border: none;
+            background: #1e293b;
+            color: white;
+            outline: none;
+            border: 1px solid #475569;
+        }
+        /* attendance table */
+        .attendance-list {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #cbd5e1;
+        }
+        th, td {
+            padding: 0.9rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            color: #facc15;
+            font-weight: 600;
+        }
+        .badge {
+            background: #0f3b2c;
+            color: #2dd4bf;
+            padding: 0.2rem 0.7rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .delete-btn {
+            background: none;
+            box-shadow: none;
+            color: #ef4444;
+            padding: 0.2rem 0.5rem;
+            font-size: 1rem;
+        }
+        .delete-btn:hover {
+            background: rgba(239,68,68,0.2);
+            transform: none;
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e293b;
+            border-left: 5px solid #facc15;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.8rem;
+            color: white;
+            z-index: 1000;
+            box-shadow: 0 8px 20px black;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        @media (max-width: 950px) {
+            .main-grid { grid-template-columns: 1fr; }
+            body { padding: 1rem; }
+        }
+        .face-status {
+            margin-top: 1rem;
+            background: #0f172a;
+            border-radius: 1rem;
+            padding: 0.6rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        .highlight {
+            color: #facc15;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="header">
+        <div class="logo">
+            <h1><i class="fas fa-id-card"></i> FaceNet <span>Attendance AI</span></h1>
+            <small style="color:#94a3b8;">FaceNet embeddings • Real‑time recognition</small>
+        </div>
+        <div class="stats-badge">
+            <div class="stat-card"><i class="fas fa-users"></i> <span id="totalRegistered">0</span> <span style="color:#cbd5e6;">Registered</span></div>
+            <div class="stat-card"><i class="fas fa-calendar-check"></i> <span id="todayCount">0</span> <span style="color:#cbd5e6;">Today</span></div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <!-- LEFT PANEL: Camera & Registration -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-camera"></i> Live Face Capture & Recognition</h2>
+            </div>
+            <div class="card-body">
+                <div class="video-wrapper">
+                    <video id="webcam" autoplay playsinline muted></video>
+                    <canvas id="faceCanvas"></canvas>
+                </div>
+                <div class="cam-controls">
+                    <button id="startCamBtn"><i class="fas fa-play"></i> Start Camera</button>
+                    <button id="stopCamBtn" class="danger"><i class="fas fa-stop"></i> Stop</button>
+                    <button id="markAttendanceBtn" class="success"><i class="fas fa-fingerprint"></i> Mark Attendance (Recognize)</button>
+                </div>
+                <div class="face-status" id="recogStatus">
+                    <i class="fas fa-info-circle"></i> Status: <span id="statusText">Initializing face-api...</span>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="studentName" placeholder="Full name (e.g., John Doe)" autocomplete="off">
+                    <input type="text" id="studentId" placeholder="Unique ID / Roll No" autocomplete="off">
+                    <button id="registerFaceBtn" class="warning"><i class="fas fa-user-plus"></i> Register Face</button>
+                </div>
+                <p style="font-size: 12px; margin-top: 10px; color:#64748b;"><i class="fas fa-lightbulb"></i> Register: Enter name+ID, then click 'Register Face' while your face is visible. FaceNet descriptor extracted.</p>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Attendance Records -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-clipboard-list"></i> Attendance Log (Today)</h2>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                    <button id="exportCsvBtn" style="background:#4b5563;"><i class="fas fa-download"></i> Export CSV</button>
+                    <button id="clearLogBtn" class="danger" style="background:#7f1a1a;"><i class="fas fa-trash-alt"></i> Clear Log</button>
+                </div>
+                <div class="attendance-list">
+                    <table id="attTable">
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Time</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="attTbody">
+                            <tr><td colspan="5" style="text-align:center;">No records yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- GLOBALS ----------
+    let videoElement = document.getElementById('webcam');
+    let canvas = document.getElementById('faceCanvas');
+    let ctx = canvas.getContext('2d');
+    let currentStream = null;
+    let modelsLoaded = false;
+    let faceMatcher = null;          // will hold FaceMatcher after building descriptors
+    let knownDescriptors = [];        // store {label, descriptor}
+    
+    // attendance store for today (using localStorage to persist across page reloads)
+    let attendanceRecords = [];   // { id, name, timestamp, dateStr }
+    
+    // helper: get today's date YYYY-MM-DD
+    function getTodayStr() {
+        let d = new Date();
+        return d.toISOString().split('T')[0];
+    }
+    
+    // load attendance from localStorage
+    function loadAttendanceFromStorage() {
+        let stored = localStorage.getItem('facenet_attendance');
+        if(stored) {
+            try {
+                attendanceRecords = JSON.parse(stored);
+                // filter only today's records for display (but we keep all for data integrity? better show only today but store all)
+                // But we manage by showing today's records only, but remove older when needed? for simplicity we keep all but display filter by date.
+                // However requirement "Today attendance log" we filter display.
+                renderAttendanceTable();
+                updateTodayCount();
+            } catch(e) { attendanceRecords = []; }
+        } else {
+            attendanceRecords = [];
+        }
+    }
+    
+    function saveAttendanceToStorage() {
+        localStorage.setItem('facenet_attendance', JSON.stringify(attendanceRecords));
+    }
+    
+    function addAttendanceRecord(name, id) {
+        let now = new Date();
+        let timeStr = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        let todayStr = getTodayStr();
+        // prevent duplicate check-in today for same person (ID based)
+        let alreadyToday = attendanceRecords.some(rec => rec.id === id && rec.dateStr === todayStr);
+        if(alreadyToday) {
+            showToast(`⚠️ ${name} already marked today!`, '#f59e0b');
+            return false;
+        }
+        let record = {
+            id: id,
+            name: name,
+            timestamp: timeStr,
+            fullDate: now.toISOString(),
+            dateStr: todayStr
+        };
+        attendanceRecords.push(record);
+        saveAttendanceToStorage();
+        renderAttendanceTable();
+        updateTodayCount();
+        showToast(`✅ Attendance marked for ${name} (${id})`, '#10b981');
+        return true;
+    }
+    
+    function renderAttendanceTable() {
+        let tbody = $('#attTbody');
+        tbody.empty();
+        let todayStr = getTodayStr();
+        let todaysRecords = attendanceRecords.filter(r => r.dateStr === todayStr);
+        if(todaysRecords.length === 0) {
+            tbody.html('<tr><td colspan="5" style="text-align:center;">No attendance today</td></tr>');
+            return;
+        }
+        todaysRecords.forEach((rec, idx) => {
+            let row = `<tr>
+                <td>${escapeHtml(rec.id)}</td>
+                <td>${escapeHtml(rec.name)}</td>
+                <td>${rec.timestamp}</td>
+                <td><span class="badge"><i class="fas fa-check-circle"></i> Present</span></td>
+                <td><button class="delete-btn" data-idx="${idx}" data-id="${rec.id}" data-date="${rec.dateStr}"><i class="fas fa-times-circle"></i></button></td>
+            </tr>`;
+            tbody.append(row);
+        });
+        // attach delete event
+        $('.delete-btn').off('click').on('click', function() {
+            let id = $(this).data('id');
+            let dateStr = $(this).data('date');
+            if(confirm(`Delete attendance for ID ${id} on ${dateStr}?`)) {
+                attendanceRecords = attendanceRecords.filter(r => !(r.id === id && r.dateStr === dateStr));
+                saveAttendanceToStorage();
+                renderAttendanceTable();
+                updateTodayCount();
+                showToast('Record deleted', '#dc2626');
+            }
+        });
+    }
+    
+    function updateTodayCount() {
+        let todayStr = getTodayStr();
+        let count = attendanceRecords.filter(r => r.dateStr === todayStr).length;
+        $('#todayCount').text(count);
+    }
+    
+    function updateTotalRegistered() {
+        let uniquePeople = new Set();
+        knownDescriptors.forEach(d => uniquePeople.add(d.label));
+        $('#totalRegistered').text(uniquePeople.size);
+    }
+    
+    // load registered faces from localStorage (descriptors)
+    function loadRegisteredFaces() {
+        let storedFaces = localStorage.getItem('facenet_registered');
+        if(storedFaces) {
+            try {
+                let data = JSON.parse(storedFaces);
+                knownDescriptors = data;
+                rebuildFaceMatcher();
+                updateTotalRegistered();
+                showToast(`Loaded ${knownDescriptors.length} face embeddings`, '#3b82f6');
+            } catch(e) { knownDescriptors = []; }
+        } else {
+            knownDescriptors = [];
+        }
+        rebuildFaceMatcher();
+        updateTotalRegistered();
+    }
+    
+    function saveRegisteredFaces() {
+        localStorage.setItem('facenet_registered', JSON.stringify(knownDescriptors));
+        updateTotalRegistered();
+    }
+    
+    function rebuildFaceMatcher() {
+        if(knownDescriptors.length === 0) {
+            faceMatcher = null;
+            return;
+        }
+        // Build labeled descriptors for FaceMatcher from FaceAPI
+        let labeledDescriptors = [];
+        knownDescriptors.forEach(item => {
+            // item.label is string like "John Doe (ID123)"
+            // item.descriptor is array
+            let descriptor = new Float32Array(item.descriptor);
+            labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(item.label, [descriptor]));
+        });
+        if(labeledDescriptors.length > 0) {
+            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6); // threshold 0.6
+        } else {
+            faceMatcher = null;
+        }
+    }
+    
+    // Register new face descriptor from current video frame
+    async function registerCurrentFace() {
+        let name = $('#studentName').val().trim();
+        let id = $('#studentId').val().trim();
+        if(!name || !id) {
+            showToast('Please enter both Name and ID', '#dc2626');
+            return;
+        }
+        if(!videoElement.srcObject || !modelsLoaded) {
+            showToast('Camera not started or models not ready', '#dc2626');
+            return;
+        }
+        let detection = await faceapi.detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+        if(!detection || !detection.descriptor) {
+            showToast('No face detected. Please look at camera clearly.', '#f59e0b');
+            return;
+        }
+        let descriptorArray = Array.from(detection.descriptor);
+        let label = `${name} (${id})`;
+        // check duplicate ID
+        let existing = knownDescriptors.find(d => d.label.split('(')[1]?.replace(')', '') === id);
+        if(existing) {
+            if(confirm(`ID ${id} already registered. Overwrite face data?`)) {
+                knownDescriptors = knownDescriptors.filter(d => !(d.label.split('(')[1]?.replace(')', '') === id));
+            } else {
+                return;
+            }
+        }
+        knownDescriptors.push({ label: label, descriptor: descriptorArray });
+        saveRegisteredFaces();
+        rebuildFaceMatcher();
+        $('#studentName').val('');
+        $('#studentId').val('');
+        showToast(`✅ Registered ${name} (${id}) with FaceNet descriptor`, '#10b981');
+        updateTotalRegistered();
+    }
+    
+    // Recognize & mark attendance
+    async function recognizeAndMark() {
+        if(!faceMatcher) {
+            showToast('No registered faces. Please register at least one person.', '#f59e0b');
+            return;
+        }
+        if(!videoElement.srcObject || !modelsLoaded) {
+            showToast('Camera not active or models missing', '#dc2626');
+            return;
+        }
+        let detection = await faceapi.detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+        if(!detection || !detection.descriptor) {
+            $('#recogStatus').html('<i class="fas fa-exclamation-triangle"></i> Status: <span style="color:#f87171;">No face detected</span>');
+            showToast('No face detected, please align properly', '#f59e0b');
+            return;
+        }
+        let bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+        if(bestMatch.label === 'unknown') {
+            $('#recogStatus').html('<i class="fas fa-user-slash"></i> Status: <span class="highlight">Unknown face</span>');
+            showToast('Face not recognized! Please register first.', '#dc2626');
+            return;
+        } else {
+            let confidence = (1 - bestMatch.distance).toFixed(2);
+            $('#recogStatus').html(`<i class="fas fa-smile-wink"></i> Status: Recognized <strong>${bestMatch.label}</strong> (confidence: ${confidence})`);
+            // parse name and ID from label: format "Name (ID)"
+            let label = bestMatch.label;
+            let matchId = label.match(/\(([^)]+)\)/);
+            let extractedId = matchId ? matchId[1] : label;
+            let extractedName = label.replace(`(${extractedId})`, '').trim();
+            addAttendanceRecord(extractedName, extractedId);
+        }
+    }
+    
+    // draw rectangles on canvas
+    async function drawFaceOverlay() {
+        if(!videoElement.videoWidth || !modelsLoaded) {
+            requestAnimationFrame(drawFaceOverlay);
+            return;
+        }
+        let detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if(detections.length > 0) {
+            let resized = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+            faceapi.draw.drawDetections(canvas, resized);
+            faceapi.draw.drawFaceLandmarks(canvas, resized);
+        }
+        requestAnimationFrame(drawFaceOverlay);
+    }
+    
+    // Load models (FaceNet weights via face-api)
+    async function loadModels() {
+        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
+        try {
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+            modelsLoaded = true;
+            $('#statusText').text('Models ready ✅ | Start camera');
+            showToast('FaceNet models loaded successfully', '#10b981');
+        } catch(err) {
+            console.error(err);
+            $('#statusText').text('Model load error! Check network');
+            showToast('Error loading AI models, check internet', '#dc2626');
+        }
+    }
+    
+    // camera handling
+    async function startCamera() {
+        if(currentStream) {
+            stopCameraTracks();
+        }
+        try {
+            let stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+            videoElement.srcObject = stream;
+            currentStream = stream;
+            await videoElement.play();
+            $('#statusText').text('Camera active • Face detection ready');
+            canvas.style.display = 'block';
+        } catch(err) {
+            $('#statusText').text('Camera permission denied');
+            showToast('Cannot access webcam', '#dc2626');
+        }
+    }
+    
+    function stopCameraTracks() {
+        if(currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+            videoElement.srcObject = null;
+            $('#statusText').text('Camera stopped');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+    
+    function exportCSV() {
+        let todayStr = getTodayStr();
+        let todays = attendanceRecords.filter(r => r.dateStr === todayStr);
+        if(todays.length === 0) {
+            showToast('No attendance to export', '#f59e0b');
+            return;
+        }
+        let csvRows = [["ID","Name","Time","Date"]];
+        todays.forEach(rec => {
+            csvRows.push([rec.id, rec.name, rec.timestamp, rec.dateStr]);
+        });
+        let csvContent = csvRows.map(row => row.join(",")).join("\n");
+        let blob = new Blob([csvContent], {type: 'text/csv'});
+        let link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `attendance_${todayStr}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        showToast('Exported CSV', '#3b82f6');
+    }
+    
+    function clearLog() {
+        if(confirm('Remove ALL attendance records? This action is permanent.')) {
+            attendanceRecords = [];
+            saveAttendanceToStorage();
+            renderAttendanceTable();
+            updateTodayCount();
+            showToast('All attendance cleared', '#dc2626');
+        }
+    }
+    
+    function showToast(msg, bgColor = '#334155') {
+        let toast = $('<div class="toast-msg">' + msg + '</div>');
+        $('body').append(toast);
+        toast.css('background', bgColor);
+        setTimeout(() => { toast.fadeOut(300, function(){ $(this).remove(); }); }, 2500);
+    }
+    
+    function escapeHtml(str) {
+        if(!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // --- initializers ---
+    $(document).ready(async function() {
+        await loadModels();
+        loadRegisteredFaces();
+        loadAttendanceFromStorage();
+        // start default camera on load
+        startCamera();
+        // start overlay loop
+        requestAnimationFrame(drawFaceOverlay);
+        // event bindings
+        $('#startCamBtn').on('click', startCamera);
+        $('#stopCamBtn').on('click', stopCameraTracks);
+        $('#registerFaceBtn').on('click', registerCurrentFace);
+        $('#markAttendanceBtn').on('click', recognizeAndMark);
+        $('#exportCsvBtn').on('click', exportCSV);
+        $('#clearLogBtn').on('click', clearLog);
+        // periodic sync for stat refresh
+        setInterval(() => { updateTodayCount(); updateTotalRegistered(); }, 2000);
+    });
+</script>
+</body>
+</html>
