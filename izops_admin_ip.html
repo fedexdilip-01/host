@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>AI CCTV Admin Panel | Master Administration</title>
+  <!-- Google Fonts + Font Awesome 6 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- jQuery & Chart.js -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0e1a;
+      color: #eef2ff;
+      overflow-x: hidden;
+    }
+
+    /* admin layout */
+    .admin-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, #0c1122 0%, #070b16 100%);
+      border-right: 1px solid #1e2a44;
+      padding: 2rem 1rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+    .sidebar-header {
+      margin-bottom: 2.5rem;
+      padding-left: 0.5rem;
+    }
+    .sidebar-header h2 {
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #4f9eff, #a855f7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .sidebar-header p {
+      font-size: 0.7rem;
+      color: #5f7f9e;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0.8rem 1rem;
+      margin: 0.3rem 0;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+      color: #b9c7dd;
+    }
+    .nav-item i {
+      width: 24px;
+      font-size: 1.2rem;
+    }
+    .nav-item.active {
+      background: #1e2a5e;
+      color: white;
+      box-shadow: 0 4px 12px rgba(79, 158, 255, 0.2);
+    }
+    .nav-item:hover:not(.active) {
+      background: #111b33;
+      color: #e0e7ff;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 1.5rem 2rem;
+    }
+
+    /* top bar */
+    .admin-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f1629cc;
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 0.7rem 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid #28344e;
+    }
+    .admin-title {
+      font-weight: 600;
+    }
+    .admin-badge {
+      background: #4f46e5;
+      padding: 0.3rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.75rem;
+    }
+
+    /* cards grid */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: #111927;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      border: 1px solid #253044;
+    }
+
+    /* tables & panels */
+    .panel-card {
+      background: #0f1629;
+      border-radius: 1.5rem;
+      border: 1px solid #20293f;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .panel-header {
+      padding: 1rem 1.5rem;
+      background: #0b1120;
+      border-bottom: 1px solid #20293f;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .table-responsive {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 1rem 1.2rem;
+      border-bottom: 1px solid #1e2740;
+    }
+    th {
+      color: #8ba0c0;
+      font-weight: 500;
+    }
+    .status-badge {
+      background: #1f3a4b;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+    }
+    .status-active { background: #0f3b2c; color: #2ecc71; }
+    .status-inactive { background: #3e2420; color: #e74c3c; }
+    button {
+      background: #2c3e66;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 40px;
+      color: white;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    button.danger-btn {
+      background: #7f2a2a;
+    }
+    button.primary-btn {
+      background: #2c7da0;
+    }
+    .form-inline {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    input, select {
+      background: #0f172a;
+      border: 1px solid #2d3a5e;
+      padding: 8px 12px;
+      border-radius: 32px;
+      color: white;
+      outline: none;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #111b2f;
+      border-radius: 2rem;
+      padding: 2rem;
+      width: 400px;
+      max-width: 90%;
+    }
+    @media (max-width: 768px) {
+      .sidebar { width: 80px; padding: 1rem 0.5rem; }
+      .sidebar .nav-item span { display: none; }
+      .main-content { margin-left: 80px; }
+      .sidebar-header p { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="admin-container">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-shield-haltered"></i> CVAdmin</h2>
+      <p>CCTV AI Master Control</p>
+    </div>
+    <div class="nav-item active" data-tab="dashboard">
+      <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+    </div>
+    <div class="nav-item" data-tab="cameras">
+      <i class="fas fa-video"></i> <span>IP Cameras</span>
+    </div>
+    <div class="nav-item" data-tab="users">
+      <i class="fas fa-users"></i> <span>Users & Roles</span>
+    </div>
+    <div class="nav-item" data-tab="ai-config">
+      <i class="fas fa-brain"></i> <span>AI Engine Config</span>
+    </div>
+    <div class="nav-item" data-tab="logs">
+      <i class="fas fa-history"></i> <span>Audit Logs</span>
+    </div>
+  </div>
+
+  <!-- MAIN ADMIN PANEL -->
+  <div class="main-content">
+    <div class="admin-topbar">
+      <div class="admin-title"><i class="fas fa-crown"></i> Super Admin · Root Access</div>
+      <div class="admin-badge"><i class="fas fa-fingerprint"></i> Session: Admin</div>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div id="dashboardTab" class="tab-content">
+      <div class="stats-row">
+        <div class="stat-card"><i class="fas fa-camera"></i> <h3>Total Cameras</h3><p id="adminTotalCams" style="font-size:2rem; font-weight:700;">0</p></div>
+        <div class="stat-card"><i class="fas fa-user-shield"></i> <h3>Active Users</h3><p id="totalUsersCount" style="font-size:2rem;">3</p></div>
+        <div class="stat-card"><i class="fas fa-chart-line"></i> <h3>AI Alerts (7d)</h3><p id="totalAlertsWeek" style="font-size:2rem;">126</p></div>
+        <div class="stat-card"><i class="fas fa-microchip"></i> <h3>AI Model Version</h3><p>YOLOv8+Transformer v2.1</p></div>
+      </div>
+      <div class="panel-card">
+        <div class="panel-header"><h3>📊 System Performance</h3><i class="fas fa-chart-simple"></i></div>
+        <div style="padding:1rem;"><canvas id="adminChart" height="180"></canvas></div>
+      </div>
+      <div class="panel-card">
+        <div class="panel-header"><h3>⚠️ Recent AI Incidents</h3><button id="clearAllLogsBtn" class="danger-btn" style="padding:4px 12px;">Clear Logs</button></div>
+        <div class="table-responsive"><table id="incidentTable"><thead><tr><th>Time</th><th>Camera</th><th>Event Type</th><th>AI Confidence</th></tr></thead><tbody><tr><td colspan="4">Loading admin incidents...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- CAMERAS MANAGEMENT -->
+    <div id="camerasTab" class="tab-content" style="display:none;">
+      <div class="panel-card">
+        <div class="panel-header"><h3><i class="fas fa-network-wired"></i> IP Camera Registry (Admin Control)</h3><button id="openAddCameraModalBtn" class="primary-btn">+ Add Camera</button></div>
+        <div class="table-responsive"><table id="adminCamerasTable"><thead><tr><th>ID</th><th>Name</th><th>IP Address</th><th>Status</th><th>AI Enabled</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- USERS & ROLES -->
+    <div id="usersTab" class="tab-content" style="display:none;">
+      <div class="panel-card">
+        <div class="panel-header"><h3><i class="fas fa-user-tag"></i> System Users & Permissions</h3><button id="openAddUserModal">+ Create Admin User</button></div>
+        <div class="table-responsive"><table id="usersTable"><thead><tr><th>Username</th><th>Role</th><th>Last Login</th><th>2FA Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- AI CONFIGURATION -->
+    <div id="ai-configTab" class="tab-content" style="display:none;">
+      <div class="panel-card">
+        <div class="panel-header"><h3><i class="fas fa-sliders-h"></i> Neural Engine Hyperparameters</h3></div>
+        <div style="padding:1.5rem;">
+          <div class="form-inline" style="margin-bottom:1rem;"><label style="width:180px;">Confidence Threshold:</label><input type="range" id="confThresh" min="0.4" max="0.95" step="0.01" value="0.75"><span id="confValDisplay">0.75</span></div>
+          <div class="form-inline" style="margin-bottom:1rem;"><label style="width:180px;">IoU for NMS:</label><input type="range" id="iouThresh" min="0.3" max="0.8" step="0.01" value="0.5"><span id="iouValDisplay">0.50</span></div>
+          <div class="form-inline"><label style="width:180px;">Motion Sensitivity:</label><select id="motionSense"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+          <button id="saveAIConfig" style="margin-top:1.5rem;">Apply AI Settings</button>
+          <div id="aiConfigMsg" style="margin-top:1rem;color:#2ecc71;"></div>
+        </div>
+      </div>
+      <div class="panel-card"><div class="panel-header"><h3>🧠 Pretrained Model Registry</h3></div><div style="padding:1rem;"><ul><li>✔️ YOLOv8n (Object Detection)</li><li>✔️ ResNet50 (Feature Extractor)</li><li>✔️ DeepSort (Tracking)</li><li>🔄 Action Recognition (Inference Ready)</li></ul></div></div>
+    </div>
+
+    <!-- LOGS TAB -->
+    <div id="logsTab" class="tab-content" style="display:none;">
+      <div class="panel-card">
+        <div class="panel-header"><h3>📜 Admin Audit Trail & System Logs</h3><button id="exportLogsBtn">Export JSON</button></div>
+        <div class="table-responsive"><table id="logsTable"><thead><tr><th>Timestamp</th><th>Admin Action</th><th>Details</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div id="cameraModal" class="modal"><div class="modal-content"><h3>Add IP Camera</h3><input type="text" id="modalCamName" placeholder="Camera Name" style="width:100%; margin:10px 0;"><input type="text" id="modalCamIp" placeholder="IP Address"><div style="margin-top:1rem;"><button id="saveCameraBtn">Save</button><button id="closeCamModal" style="margin-left:10px; background:#4a5568;">Cancel</button></div></div></div>
+<div id="userModal" class="modal"><div class="modal-content"><h3>Create Admin / Operator</h3><input type="text" id="newUsername" placeholder="Username" style="width:100%; margin:6px 0;"><select id="newUserRole"><option>Administrator</option><option>Operator</option><option>Viewer</option></select><div style="margin-top:1rem;"><button id="saveUserBtn">Add User</button><button id="closeUserModal" style="margin-left:10px;">Cancel</button></div></div></div>
+
+<script>
+  $(function(){
+    // ---------- DATA MODELS (Admin State) ----------
+    let cameras = [
+      { id: 1, name: "Main Gate", ip: "192.168.1.10", status: "online", aiEnabled: true },
+      { id: 2, name: "Parking Lot", ip: "192.168.1.22", status: "online", aiEnabled: true },
+      { id: 3, name: "Server Room", ip: "10.0.0.99", status: "offline", aiEnabled: false }
+    ];
+    let users = [
+      { username: "admin_super", role: "Administrator", lastLogin: "2025-05-24 08:12", twoFA: "Enabled" },
+      { username: "operator_john", role: "Operator", lastLogin: "2025-05-23 22:10", twoFA: "Disabled" },
+      { username: "viewer_amy", role: "Viewer", lastLogin: "2025-05-24 09:45", twoFA: "Disabled" }
+    ];
+    let auditLogs = [
+      { ts: "2025-05-24 10:23", action: "User Login", detail: "admin_super logged in" },
+      { ts: "2025-05-24 09:15", action: "Camera Config", detail: "Changed AI sensitivity for Main Gate" },
+      { ts: "2025-05-23 22:01", action: "AI Threshold", detail: "Confidence threshold updated to 0.75" }
+    ];
+    let incidents = [
+      { time: "10:32 AM", camera: "Main Gate", type: "Suspicious Person", conf: "94%" },
+      { time: "09:55 AM", camera: "Parking Lot", type: "Vehicle Loitering", conf: "88%" },
+      { time: "08:20 AM", camera: "Lobby", type: "Motion Spike", conf: "76%" }
+    ];
+
+    // Helper: render all admin tables & stats
+    function refreshAdminUI() {
+      $("#adminTotalCams").text(cameras.length);
+      $("#totalUsersCount").text(users.length);
+      $("#totalAlertsWeek").text(Math.floor(100 + incidents.length * 8));
+      renderCamerasTable();
+      renderUsersTable();
+      renderAuditLogsTable();
+      renderIncidentsTable();
+    }
+
+    function renderCamerasTable() {
+      let tbody = $("#adminCamerasTable tbody");
+      tbody.empty();
+      cameras.forEach(cam => {
+        let row = `<tr>
+          <td>${cam.id}</td>
+          <td>${escapeHtml(cam.name)}</td>
+          <td>${cam.ip}</td>
+          <td><span class="status-badge ${cam.status === 'online' ? 'status-active' : 'status-inactive'}">${cam.status}</span></td>
+          <td>${cam.aiEnabled ? '<i class="fas fa-check-circle" style="color:#2ecc71;"></i> Enabled' : 'Disabled'}</td>
+          <td><button class="toggleCamStatusBtn" data-id="${cam.id}">Toggle Status</button> <button class="deleteCamBtn danger-btn" data-id="${cam.id}">Delete</button></td>
+        </tr>`;
+        tbody.append(row);
+      });
+    }
+
+    function renderUsersTable() {
+      let tbody = $("#usersTable tbody");
+      tbody.empty();
+      users.forEach(u => {
+        let row = `<tr><td>${escapeHtml(u.username)}</td><td>${u.role}</td><td>${u.lastLogin}</td><td>${u.twoFA}</td><td><button class="deleteUserBtn" data-user="${u.username}">Remove</button></td></tr>`;
+        tbody.append(row);
+      });
+    }
+
+    function renderAuditLogsTable() {
+      let tbody = $("#logsTable tbody");
+      tbody.empty();
+      auditLogs.slice().reverse().forEach(log => {
+        tbody.append(`<tr><td>${log.ts}</td><td>${log.action}</td><td>${log.detail}</td></tr>`);
+      });
+    }
+
+    function renderIncidentsTable() {
+      let tbody = $("#incidentTable tbody");
+      tbody.empty();
+      if(incidents.length === 0) tbody.html('<tr><td colspan="4">No incidents recorded</td></tr>');
+      else incidents.forEach(inc => { tbody.append(`<tr><td>${inc.time}</td><td>${inc.camera}</td><td>${inc.type}</td><td>${inc.conf}</td></tr>`); });
+    }
+
+    function addAuditLog(action, detail) {
+      let now = new Date().toLocaleTimeString();
+      auditLogs.unshift({ ts: now, action: action, detail: detail });
+      if(auditLogs.length > 20) auditLogs.pop();
+      renderAuditLogsTable();
+    }
+
+    // delete camera
+    $(document).on('click', '.deleteCamBtn', function(){
+      let id = parseInt($(this).data('id'));
+      cameras = cameras.filter(c => c.id !== id);
+      refreshAdminUI();
+      addAuditLog("Camera Deleted", `Camera ID ${id} removed by admin`);
+    });
+    $(document).on('click', '.toggleCamStatusBtn', function(){
+      let id = parseInt($(this).data('id'));
+      let cam = cameras.find(c => c.id === id);
+      if(cam) { cam.status = cam.status === "online" ? "offline" : "online"; refreshAdminUI(); addAuditLog("Camera Status", `${cam.name} status toggled to ${cam.status}`); }
+    });
+    $(document).on('click', '.deleteUserBtn', function(){
+      let username = $(this).data('user');
+      if(username === "admin_super") { alert("Cannot remove super admin"); return; }
+      users = users.filter(u => u.username !== username);
+      refreshAdminUI();
+      addAuditLog("User Management", `User ${username} deleted`);
+    });
+
+    // Modal handling camera
+    $("#openAddCameraModalBtn").click(() => $("#cameraModal").fadeIn());
+    $("#closeCamModal, #cameraModal").click(function(e){ if(e.target === this) $("#cameraModal").fadeOut(); });
+    $("#saveCameraBtn").click(()=>{
+      let name = $("#modalCamName").val().trim();
+      let ip = $("#modalCamIp").val().trim();
+      if(!name || !ip) return alert("Fill all fields");
+      let newId = Date.now();
+      cameras.push({ id: newId, name: name, ip: ip, status: "online", aiEnabled: true });
+      refreshAdminUI();
+      addAuditLog("Camera Added", `New IP Camera ${name} (${ip})`);
+      $("#modalCamName, #modalCamIp").val("");
+      $("#cameraModal").fadeOut();
+    });
+
+    // User modal
+    $("#openAddUserModal").click(() => $("#userModal").fadeIn());
+    $("#closeUserModal, #userModal").click(function(e){ if(e.target === this) $("#userModal").fadeOut(); });
+    $("#saveUserBtn").click(()=>{
+      let uname = $("#newUsername").val().trim();
+      let role = $("#newUserRole").val();
+      if(!uname) return alert("Username required");
+      if(users.find(u=>u.username===uname)) return alert("User exists");
+      users.push({ username: uname, role: role, lastLogin: "never", twoFA: "Disabled" });
+      refreshAdminUI();
+      addAuditLog("User Created", `${uname} (${role}) added`);
+      $("#newUsername").val("");
+      $("#userModal").fadeOut();
+    });
+
+    // AI config sliders & save
+    $("#confThresh").on("input", function(){ $("#confValDisplay").text(parseFloat($(this).val()).toFixed(2)); });
+    $("#iouThresh").on("input", function(){ $("#iouValDisplay").text(parseFloat($(this).val()).toFixed(2)); });
+    $("#saveAIConfig").click(()=>{
+      let conf = $("#confThresh").val();
+      let iou = $("#iouThresh").val();
+      let motion = $("#motionSense").val();
+      $("#aiConfigMsg").text(`✅ AI config saved: Conf=${conf}, IoU=${iou}, Motion=${motion}`);
+      addAuditLog("AI Configuration", `Thresholds updated (Conf:${conf}, IoU:${iou}, Motion:${motion})`);
+      setTimeout(()=> $("#aiConfigMsg").text(""), 2500);
+    });
+
+    $("#clearAllLogsBtn").click(()=>{
+      incidents = [];
+      renderIncidentsTable();
+      addAuditLog("Incident Logs", "All AI incidents cleared by admin");
+    });
+    $("#exportLogsBtn").click(()=>{
+      let dataStr = JSON.stringify(auditLogs, null, 2);
+      let blob = new Blob([dataStr], {type: "application/json"});
+      let url = URL.createObjectURL(blob);
+      let a = $('<a>', { href: url, download: "admin_audit_logs.json" })[0];
+      a.click();
+      URL.revokeObjectURL(url);
+      addAuditLog("Export", "Admin exported audit logs");
+    });
+
+    // Chart for admin dashboard
+    let ctx = document.getElementById('adminChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ label: 'AI Detections', data: [45,62,78,54,92,110,98], borderColor: '#4f9eff', tension: 0.3 }] },
+      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#ccc' } } }, scales: { y: { grid: { color: '#1f2a44' }, ticks: { color: '#ccc' } }, x: { ticks: { color: '#ccc' } } } }
+    });
+
+    // Tab switching
+    $(".nav-item").click(function(){
+      let tab = $(this).data("tab");
+      $(".tab-content").hide();
+      $("#"+tab+"Tab").show();
+      $(".nav-item").removeClass("active");
+      $(this).addClass("active");
+    });
+    function escapeHtml(s){ if(!s) return ""; return s.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    refreshAdminUI();
+    // default open dashboard
+    $("#dashboardTab").show();
+    // additional: clean up for modal background click
+    $(".modal").click(function(e){ if($(e.target).hasClass("modal")) $(this).fadeOut(); });
+  });
+</script>
+</body>
+</html>
