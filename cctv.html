@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CCTV Pro | Intelligent Pre-Pricing Dashboard with Camera Limits</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            padding: 28px 24px;
+            color: #1a2c3e;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+            gap: 16px;
+        }
+        .title-section h1 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0B2F4E, #1E4A6F);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .title-section p {
+            color: #5a6e7c;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+        .badge-area {
+            background: white;
+            padding: 8px 20px;
+            border-radius: 60px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            font-weight: 500;
+            color: #1f6392;
+            border: 1px solid #dce5ec;
+        }
+        .badge-area i {
+            margin-right: 8px;
+            color: #2c7cb6;
+        }
+
+        /* KPI Cards */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 22px;
+            margin-bottom: 36px;
+        }
+        .kpi-card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            border: 1px solid #e9edf2;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 30px -12px rgba(0,0,0,0.1);
+        }
+        .kpi-icon {
+            font-size: 2rem;
+            color: #2c7cb6;
+            margin-bottom: 12px;
+        }
+        .kpi-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #5c6f87;
+        }
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #0f2e42;
+            margin: 8px 0 4px;
+        }
+        .kpi-sub {
+            font-size: 0.75rem;
+            color: #6f8eaa;
+        }
+        .warning-kpi {
+            color: #e67e22;
+        }
+
+        /* Main Grid */
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 28px;
+            margin-bottom: 36px;
+        }
+        @media (max-width: 950px) {
+            .assessment-grid {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+            body {
+                padding: 20px 16px;
+            }
+        }
+
+        /* Cards */
+        .form-card, .summary-card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f6;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid #eef2f6;
+            background: #fefefe;
+        }
+        .card-header h2 {
+            font-size: 1.45rem;
+            font-weight: 600;
+            color: #1e4663;
+        }
+        .card-header h2 i {
+            margin-right: 12px;
+            color: #2b7a9c;
+        }
+        .card-body {
+            padding: 24px 28px;
+        }
+
+        /* Form Elements */
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #2c4b6e;
+        }
+        .input-group input, .input-group select {
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 18px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            background: #fafcff;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #2c7cb6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(44,124,182,0.2);
+        }
+        .double-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .btn-primary {
+            background: #1c5d87;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .btn-primary i {
+            margin-right: 10px;
+        }
+        .btn-primary:hover {
+            background: #0f486b;
+            transform: scale(0.98);
+        }
+        .btn-primary:disabled {
+            background: #95aec9;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: #f0f4f9;
+            border: 1px solid #d0dce8;
+            color: #2c5a7a;
+            padding: 10px 14px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-secondary:hover {
+            background: #e6edf4;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 14px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Quote Table */
+        .quote-items {
+            margin-bottom: 24px;
+            max-height: 320px;
+            overflow-y: auto;
+            border-radius: 20px;
+        }
+        .quote-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .quote-table th {
+            text-align: left;
+            padding: 12px 6px 12px 0;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #5e7f9a;
+            border-bottom: 1px solid #e9edf2;
+        }
+        .quote-table td {
+            padding: 12px 6px 12px 0;
+            border-bottom: 1px solid #f0f3f7;
+            font-size: 0.85rem;
+            vertical-align: middle;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #1e3b4f;
+        }
+        .delete-item {
+            color: #b91c2c;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            transition: 0.1s;
+        }
+        .delete-item:hover {
+            color: #ff4d4d;
+            transform: scale(1.1);
+        }
+        .total-row {
+            background: #f8fafd;
+            font-weight: 800;
+            border-top: 2px solid #dce5ec;
+        }
+        .total-row td {
+            padding: 14px 6px;
+            font-size: 1rem;
+        }
+        .grand-price {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1d6f42;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 36px 12px;
+            color: #8aa0b5;
+        }
+
+        /* Limit Warning & Progress */
+        .limit-warning {
+            background: #fff8e7;
+            border-left: 5px solid #f39c12;
+            padding: 12px 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .camera-limit-bar {
+            background: #e9ecef;
+            border-radius: 30px;
+            height: 8px;
+            margin: 12px 0 6px;
+            overflow: hidden;
+        }
+        .limit-progress {
+            background: #2c7cb6;
+            width: 0%;
+            height: 100%;
+            border-radius: 30px;
+            transition: width 0.3s;
+        }
+        .limit-progress.warning {
+            background: #e67e22;
+        }
+        .limit-progress.danger {
+            background: #e74c3c;
+        }
+
+        /* History */
+        .history-list {
+            margin-top: 18px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .history-item {
+            background: #f9fbfe;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid #2c7cb6;
+            transition: 0.1s;
+        }
+        .history-info {
+            font-size: 0.8rem;
+        }
+        .history-name {
+            font-weight: 700;
+        }
+        .history-price {
+            font-weight: 800;
+            color: #1f5e3a;
+        }
+        .load-btn {
+            background: transparent;
+            border: none;
+            color: #1c5d87;
+            cursor: pointer;
+            font-weight: 500;
+            margin-left: 12px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.75rem;
+            color: #7d96ae;
+        }
+        hr {
+            margin: 12px 0;
+            border: none;
+            border-top: 1px solid #e2e9f0;
+        }
+        .alert-badge {
+            background: #fff4e5;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .badge-limit {
+            background: #e8f0fe;
+            padding: 5px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="title-section">
+            <h1><i class="fas fa-video" style="color:#2c7cb6; margin-right: 10px;"></i>CCTV pre-pricing assessment</h1>
+            <p>Smart estimation • camera limits • recorder sync • intelligent quote engine</p>
+        </div>
+        <div class="badge-area">
+            <i class="fas fa-ban"></i> Camera limit: <span id="maxCameraLimitLabel">16</span> channels max
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-camera"></i></div><div class="kpi-label">Total cameras</div><div class="kpi-value" id="kpiCameras">0</div><div class="kpi-sub"><span id="camLimitStatus">/ 16 available</span></div></div>
+        <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-hdd"></i></div><div class="kpi-label">Recorder / NVR</div><div class="kpi-value" id="kpiRecorder">—</div><div class="kpi-sub">max channels limit</div></div>
+        <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-ruler-combined"></i></div><div class="kpi-label">Cable (meters)</div><div class="kpi-value" id="kpiCable">0</div><div class="kpi-sub">₹35/meter</div></div>
+        <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div><div class="kpi-value" id="kpiTotal">₹0</div><div class="kpi-sub">+ taxes extra</div></div>
+    </div>
+
+    <!-- Main assessment area -->
+    <div class="assessment-grid">
+        <!-- LEFT: configuration form -->
+        <div class="form-card">
+            <div class="card-header">
+                <h2><i class="fas fa-plus-circle"></i> Add equipment & service</h2>
+            </div>
+            <div class="card-body">
+                <!-- Camera Limit Indicator Bar -->
+                <div class="limit-warning" id="limitWarningMsg">
+                    <i class="fas fa-info-circle"></i> Current recorder supports up to <strong id="recorderLimitSpan">16</strong> cameras
+                </div>
+                <div class="camera-limit-bar">
+                    <div class="limit-progress" id="cameraProgressBar" style="width: 0%"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label><i class="fas fa-camera-retro"></i> Camera type</label>
+                    <select id="cameraTypeSelect">
+                        <option value="bullet">Bullet Camera (2MP) - ₹2,499</option>
+                        <option value="dome">Dome Camera (4MP) - ₹3,299</option>
+                        <option value="ptz">PTZ Camera (5MP zoom) - ₹8,990</option>
+                        <option value="turret">Turret HD (4MP) - ₹3,890</option>
+                    </select>
+                </div>
+                <div class="double-group">
+                    <div class="input-group"><label>Quantity</label><input type="number" id="cameraQty" min="1" value="1" step="1"></div>
+                    <div class="input-group"><label>Add camera(s)</label><button class="btn-secondary" id="addCameraBtn" style="margin-top: 26px;"><i class="fas fa-plus"></i> Add to quote</button></div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-microchip"></i> Recorder / NVR model (affects camera limit)</label>
+                    <select id="recorderSelect">
+                        <option value="none">-- None selected (unlimited? 16 default) --</option>
+                        <option value="basic">4CH H.265 DVR - ₹3,999 (max 4 cams)</option>
+                        <option value="plus">8CH PoE NVR - ₹7,490 (max 8 cams)</option>
+                        <option value="pro">16CH AI NVR - ₹14,999 (max 16 cams)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-plug"></i> Cabling length (meters) - ₹35/meter</label>
+                    <input type="number" id="cableMeters" min="0" value="0" step="5" placeholder="Estimate cable length">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-tools"></i> Installation & configuration</label>
+                    <select id="installSelect">
+                        <option value="0">No installation (self)</option>
+                        <option value="1">Basic installation (per cam) - ₹599/cam</option>
+                        <option value="2">Pro installation + config - ₹1,199/cam</option>
+                    </select>
+                </div>
+                <button class="btn-primary" id="addCustomItemBtn"><i class="fas fa-cart-plus"></i> Sync full configuration</button>
+                <hr>
+                <div class="action-buttons">
+                    <button class="btn-secondary" id="clearQuoteBtn"><i class="fas fa-trash-alt"></i> Clear quote</button>
+                    <button class="btn-secondary" id="saveAssessmentBtn"><i class="fas fa-save"></i> Save assessment</button>
+                </div>
+                <div class="alert-badge" id="infoMsg"><i class="fas fa-info-circle"></i> Camera addition respects recorder channel limits</div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Quote summary -->
+        <div class="summary-card">
+            <div class="card-header">
+                <h2><i class="fas fa-file-invoice"></i> Current pricing assessment</h2>
+            </div>
+            <div class="card-body">
+                <div class="quote-items" id="quoteItemsList">
+                    <div class="empty-message"><i class="fas fa-clipboard-list"></i> No items added yet.</div>
+                </div>
+                <div style="text-align: right; border-top: 1px solid #eef2f6; padding-top: 16px; margin-top: 8px;">
+                    <span style="font-weight: 600;">Grand Total : </span><span id="grandTotalDisplay" class="grand-price">₹0</span>
+                </div>
+            </div>
+            <div class="card-header" style="border-top: 1px solid #eef2f6;">
+                <h2><i class="fas fa-history"></i> Recent assessments</h2>
+            </div>
+            <div class="card-body" style="padding-top: 8px;">
+                <div id="historyContainer" class="history-list">
+                    <div class="empty-message">No saved assessments.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <i class="fas fa-chart-line"></i> Smart camera limiting • recorder channel enforcement • dynamic pricing
+    </footer>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Data models
+        let quoteItems = [];      // each item: { id, name, price, category, meta }
+        let nextId = 1;
+        let savedAssessments = [];
+        
+        // Recorder channel limits mapping
+        const recorderLimits = {
+            none: 16,      // default virtual limit
+            basic: 4,
+            plus: 8,
+            pro: 16
+        };
+        
+        // Pricing constants
+        const CABLE_RATE = 35;
+        const cameraPriceMap = { bullet: 2499, dome: 3299, ptz: 8990, turret: 3890 };
+        const cameraNameMap = { bullet: "Bullet Camera (2MP)", dome: "Dome Camera (4MP)", ptz: "PTZ Camera (5MP zoom)", turret: "Turret HD (4MP)" };
+        
+        // Helper: get current recorder value and its max channels
+        function getCurrentRecorderInfo() {
+            let recorderVal = $("#recorderSelect").val();
+            let maxChannels = recorderLimits[recorderVal] || 16;
+            let recorderName = $("#recorderSelect option:selected").text().split(' - ')[0];
+            if(recorderVal === 'none') recorderName = 'No Recorder';
+            return { value: recorderVal, maxChannels, name: recorderName };
+        }
+        
+        // Calculate total cameras from quote items
+        function getTotalCameraCount() {
+            let total = 0;
+            quoteItems.forEach(item => {
+                if(item.category === "camera") {
+                    total += (item.meta && item.meta.qty) ? item.meta.qty : 1;
+                }
+            });
+            return total;
+        }
+        
+        // Update UI with camera limits, warn if exceeding, disable add if needed
+        function updateCameraLimitUI() {
+            let { maxChannels, name, value } = getCurrentRecorderInfo();
+            let currentCams = getTotalCameraCount();
+            let canAddMore = currentCams < maxChannels;
+            let remaining = maxChannels - currentCams;
+            
+            // Update progress bar
+            let percent = (currentCams / maxChannels) * 100;
+            $("#cameraProgressBar").css("width", percent + "%");
+            if(percent >= 90) $("#cameraProgressBar").addClass("danger");
+            else if(percent >= 70) $("#cameraProgressBar").addClass("warning");
+            else $("#cameraProgressBar").removeClass("warning danger");
+            
+            $("#recorderLimitSpan").text(maxChannels);
+            $("#maxCameraLimitLabel").text(maxChannels);
+            $("#camLimitStatus").html(`/ ${maxChannels} available, ${remaining} left`);
+            
+            let warningMsg = `Recorder: ${name !== 'No Recorder' ? name : 'None selected'} supports max ${maxChannels} cameras. `;
+            if(currentCams >= maxChannels) {
+                warningMsg += `<strong style="color:#e67e22;">⚠️ Camera limit reached! Cannot add more cameras.</strong>`;
+                $("#addCameraBtn").prop('disabled', true);
+                $("#addCustomItemBtn").prop('disabled', false); // but sync will auto handle limits
+            } else {
+                warningMsg += `<span style="color:#2c7cb6;">You can add up to ${remaining} more camera(s).</span>`;
+                $("#addCameraBtn").prop('disabled', false);
+            }
+            $("#limitWarningMsg").html(`<i class="fas fa-microchip"></i> ${warningMsg}`);
+            return { canAddMore, remaining, maxChannels, currentCams };
+        }
+        
+        // Refresh quote table and totals
+        function refreshQuoteUI() {
+            if(quoteItems.length === 0) {
+                $("#quoteItemsList").html(`<div class="empty-message"><i class="fas fa-box-open"></i> No items. Add cameras or components.</div>`);
+                updateKPIsAndTotal();
+                updateCameraLimitUI();
+                return;
+            }
+            let html = `<table class="quote-table"><thead><tr><th>ITEM</th><th>DETAILS</th><th>PRICE</th><th></th></tr></thead><tbody>`;
+            quoteItems.forEach(item => {
+                let detail = item.meta?.desc || '';
+                if(item.category === 'camera' && item.meta?.qty) detail = `Qty: ${item.meta.qty} × ₹${item.meta.unitPrice}`;
+                if(item.category === 'cabling' && item.meta?.meters) detail = `${item.meta.meters} meters @ ₹${CABLE_RATE}/m`;
+                if(item.category === 'installation') detail = item.meta?.desc || `Based on ${item.meta?.totalCams || 0} cameras`;
+                html += `<tr>
+                            <td class="item-name">${escapeHtml(item.name)}</td>
+                            <td>${escapeHtml(detail)}</td>
+                            <td>₹${item.price.toLocaleString('en-IN')}</td>
+                            <td><button class="delete-item" data-id="${item.id}"><i class="fas fa-trash-can"></i></button></td>
+                         </tr>`;
+            });
+            let total = getTotalPrice();
+            html += `<tr class="total-row"><td colspan="2"><strong>TOTAL AMOUNT</strong></td><td colspan="2"><strong>₹${total.toLocaleString('en-IN')}</strong></td></tr>`;
+            html += `</tbody></table>`;
+            $("#quoteItemsList").html(html);
+            $(".delete-item").off("click").on("click", function() {
+                let id = parseInt($(this).data("id"));
+                quoteItems = quoteItems.filter(i => i.id !== id);
+                refreshQuoteUI();
+            });
+            updateKPIsAndTotal();
+            updateCameraLimitUI();
+        }
+        
+        function getTotalPrice() {
+            return quoteItems.reduce((sum, i) => sum + i.price, 0);
+        }
+        
+        function updateKPIsAndTotal() {
+            let totalCams = getTotalCameraCount();
+            let recorderName = "—";
+            let cableMeters = 0;
+            quoteItems.forEach(item => {
+                if(item.category === "recorder") recorderName = item.name.split(' - ')[0];
+                if(item.category === "cabling" && item.meta?.meters) cableMeters = item.meta.meters;
+            });
+            let totalVal = getTotalPrice();
+            $("#kpiCameras").text(totalCams);
+            $("#kpiRecorder").text(recorderName !== "—" ? recorderName : "None");
+            $("#kpiCable").text(cableMeters);
+            $("#kpiTotal").text("₹" + totalVal.toLocaleString('en-IN'));
+            $("#grandTotalDisplay").text("₹" + totalVal.toLocaleString('en-IN'));
+        }
+        
+        // Core function: Add camera batch with limit enforcement
+        function addCamerasWithLimit(cameraType, qty) {
+            let { maxChannels, currentCams } = getCurrentRecorderInfo();
+            let newTotal = currentCams + qty;
+            if(newTotal > maxChannels) {
+                let allowed = maxChannels - currentCams;
+                if(allowed <= 0) {
+                    $("#infoMsg").html(`<i class="fas fa-ban"></i> Cannot add camera: recorder limit (${maxChannels} cams) reached.`);
+                    setTimeout(() => resetInfoMsg(), 2500);
+                    return false;
+                } else {
+                    $("#infoMsg").html(`<i class="fas fa-exclamation-triangle"></i> Limit exceeded! Only ${allowed} of ${qty} camera(s) can be added.`);
+                    qty = allowed;
+                }
+            }
+            if(qty <= 0) return false;
+            let unitPrice = cameraPriceMap[cameraType];
+            let totalPrice = unitPrice * qty;
+            let displayName = cameraNameMap[cameraType];
+            let newItem = {
+                id: nextId++,
+                name: `${displayName} ${qty > 1 ? `(x${qty})` : ''}`,
+                price: totalPrice,
+                category: "camera",
+                meta: { qty: qty, unitPrice: unitPrice, type: cameraType, desc: `${qty} × ₹${unitPrice}` }
+            };
+            quoteItems.push(newItem);
+            refreshQuoteUI();
+            $("#infoMsg").html(`<i class="fas fa-check-circle"></i> Added ${qty} × ${displayName}.`);
+            setTimeout(() => resetInfoMsg(), 2000);
+            return true;
+        }
+        
+        // Sync entire configuration from form (recorder, cable, install) but keep cameras separate? We'll do sync but preserve cameras and apply limit on cameras if needed
+        function syncFullConfiguration() {
+            let currentCameraItems = quoteItems.filter(i => i.category === "camera");
+            let otherItems = quoteItems.filter(i => i.category !== "camera");
+            let totalCameras = getTotalCameraCount();
+            let { maxChannels } = getCurrentRecorderInfo();
+            if(totalCameras > maxChannels) {
+                $("#infoMsg").html(`<i class="fas fa-exclamation-triangle"></i> Current camera count (${totalCameras}) exceeds recorder limit (${maxChannels}). Please remove some cameras first.`);
+                setTimeout(() => resetInfoMsg(), 3000);
+                return;
+            }
+            // Process recorder, cable, installation
+            let newItems = [...currentCameraItems];
+            // Recorder
+            let recVal = $("#recorderSelect").val();
+            if(recVal !== "none") {
+                let recPrice = 0, recName = "";
+                if(recVal === "basic") { recPrice = 3999; recName = "4CH H.265 DVR"; }
+                else if(recVal === "plus") { recPrice = 7490; recName = "8CH PoE NVR (4K)"; }
+                else if(recVal === "pro") { recPrice = 14999; recName = "16CH AI NVR"; }
+                newItems = newItems.filter(i => i.category !== "recorder");
+                newItems.push({ id: nextId++, name: recName, price: recPrice, category: "recorder", meta: { channels: recorderLimits[recVal] } });
+            } else {
+                newItems = newItems.filter(i => i.category !== "recorder");
+            }
+            // Cabling
+            let cableMeters = parseFloat($("#cableMeters").val()) || 0;
+            newItems = newItems.filter(i => i.category !== "cabling");
+            if(cableMeters > 0) {
+                let cablePrice = cableMeters * CABLE_RATE;
+                newItems.push({ id: nextId++, name: "Cabling (CAT6/Coax)", price: cablePrice, category: "cabling", meta: { meters: cableMeters } });
+            }
+            // Installation
+            let installMode = $("#installSelect").val();
+            let totalCamsCount = getTotalCameraCount();
+            let installPriceTotal = 0, installDesc = "";
+            if(installMode === "1") { installPriceTotal = totalCamsCount * 599; installDesc = `Basic installation (₹599/cam) x${totalCamsCount}`; }
+            else if(installMode === "2") { installPriceTotal = totalCamsCount * 1199; installDesc = `Pro installation (₹1199/cam) x${totalCamsCount}`; }
+            newItems = newItems.filter(i => i.category !== "installation");
+            if(installPriceTotal > 0) {
+                newItems.push({ id: nextId++, name: "Installation & Configuration", price: installPriceTotal, category: "installation", meta: { perCam: installMode, totalCams: totalCamsCount, desc: installDesc } });
+            }
+            quoteItems = newItems;
+            refreshQuoteUI();
+            $("#infoMsg").html(`<i class="fas fa-sync-alt"></i> Configuration synced with recorder/cabling/installation.`);
+            setTimeout(() => resetInfoMsg(), 2500);
+        }
+        
+        // Direct camera add button
+        $("#addCameraBtn").on("click", function() {
+            let camType = $("#cameraTypeSelect").val();
+            let qty = parseInt($("#cameraQty").val()) || 1;
+            if(qty < 1) qty = 1;
+            addCamerasWithLimit(camType, qty);
+        });
+        
+        $("#addCustomItemBtn").on("click", function() {
+            syncFullConfiguration();
+        });
+        
+        $("#clearQuoteBtn").on("click", function() {
+            quoteItems = [];
+            refreshQuoteUI();
+            $("#infoMsg").html(`<i class="fas fa-trash"></i> Quote cleared.`);
+            setTimeout(() => resetInfoMsg(), 2000);
+        });
+        
+        $("#saveAssessmentBtn").on("click", function() {
+            if(quoteItems.length === 0) {
+                $("#infoMsg").html(`<i class="fas fa-exclamation"></i> Nothing to save.`);
+                return;
+            }
+            let total = getTotalPrice();
+            let snapshot = JSON.parse(JSON.stringify(quoteItems));
+            let assessmentName = "Quote " + new Date().toLocaleTimeString();
+            savedAssessments.unshift({ id: Date.now(), name: assessmentName, total: total, date: new Date().toLocaleString(), items: snapshot });
+            if(savedAssessments.length > 5) savedAssessments.pop();
+            renderHistory();
+            $("#infoMsg").html(`<i class="fas fa-save"></i> Assessment saved.`);
+            setTimeout(() => resetInfoMsg(), 2000);
+        });
+        
+        function renderHistory() {
+            if(savedAssessments.length === 0) {
+                $("#historyContainer").html('<div class="empty-message">No saved assessments.</div>');
+                return;
+            }
+            let html = "";
+            savedAssessments.forEach(ass => {
+                html += `<div class="history-item"><div><div class="history-name">${escapeHtml(ass.name)}</div><div>${ass.date}</div></div><div><span class="history-price">₹${ass.total.toLocaleString('en-IN')}</span><button class="load-btn" data-id="${ass.id}"><i class="fas fa-upload"></i> Load</button></div></div>`;
+            });
+            $("#historyContainer").html(html);
+            $(".load-btn").off("click").on("click", function() {
+                let id = parseInt($(this).data("id"));
+                let found = savedAssessments.find(a => a.id === id);
+                if(found) {
+                    quoteItems = found.items.map(it => ({ ...it, id: nextId++ }));
+                    refreshQuoteUI();
+                    $("#infoMsg").html(`<i class="fas fa-history"></i> Loaded ${found.name}`);
+                    setTimeout(() => resetInfoMsg(), 2000);
+                }
+            });
+        }
+        
+        function resetInfoMsg() {
+            $("#infoMsg").html(`<i class="fas fa-info-circle"></i> Camera addition respects recorder channel limits`);
+        }
+        
+        function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+        
+        // Listen to recorder change to update limit display
+        $("#recorderSelect").on("change", function() {
+            updateCameraLimitUI();
+            refreshQuoteUI();  // ensure UI updates regarding limits
+        });
+        
+        // Initial render
+        refreshQuoteUI();
+        renderHistory();
+        updateCameraLimitUI();
+    });
+</script>
+</body>
+</html>
