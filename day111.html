@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CCTV Pro | Installation Pre-Pricing Assessment Dashboard</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            padding: 28px 24px;
+            color: #1a2c3e;
+        }
+
+        /* dashboard container */
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* header section */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+            gap: 16px;
+        }
+        .title-section h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0B2F4E, #1E4A6F);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .title-section p {
+            color: #5a6e7c;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+        .badge-area {
+            background: white;
+            padding: 8px 20px;
+            border-radius: 60px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            font-weight: 500;
+            color: #1f6392;
+            border: 1px solid #dce5ec;
+        }
+        .badge-area i {
+            margin-right: 8px;
+            color: #2c7cb6;
+        }
+
+        /* cards row - KPI style */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 22px;
+            margin-bottom: 36px;
+        }
+        .kpi-card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            border: 1px solid #e9edf2;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 30px -12px rgba(0,0,0,0.1);
+        }
+        .kpi-icon {
+            font-size: 2rem;
+            color: #2c7cb6;
+            margin-bottom: 12px;
+        }
+        .kpi-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #5c6f87;
+        }
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #0f2e42;
+            margin: 8px 0 4px;
+        }
+        .kpi-sub {
+            font-size: 0.75rem;
+            color: #6f8eaa;
+        }
+
+        /* main two-column layout */
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 28px;
+            margin-bottom: 36px;
+        }
+        @media (max-width: 950px) {
+            .assessment-grid {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+            body {
+                padding: 20px 16px;
+            }
+        }
+
+        /* form card style */
+        .form-card, .summary-card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f6;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .card-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid #eef2f6;
+            background: #fefefe;
+        }
+        .card-header h2 {
+            font-size: 1.45rem;
+            font-weight: 600;
+            color: #1e4663;
+        }
+        .card-header h2 i {
+            margin-right: 12px;
+            color: #2b7a9c;
+        }
+        .card-body {
+            padding: 24px 28px;
+        }
+
+        /* form styling */
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #2c4b6e;
+        }
+        .input-group input, .input-group select {
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 18px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            background: #fafcff;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #2c7cb6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(44,124,182,0.2);
+        }
+        .double-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .btn-primary {
+            background: #1c5d87;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .btn-primary i {
+            margin-right: 10px;
+        }
+        .btn-primary:hover {
+            background: #0f486b;
+            transform: scale(0.98);
+        }
+        .btn-secondary {
+            background: #f0f4f9;
+            border: 1px solid #d0dce8;
+            color: #2c5a7a;
+            padding: 10px 14px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-secondary:hover {
+            background: #e6edf4;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        /* quote table / items */
+        .quote-items {
+            margin-bottom: 24px;
+            max-height: 320px;
+            overflow-y: auto;
+            border-radius: 20px;
+        }
+        .quote-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .quote-table th {
+            text-align: left;
+            padding: 12px 6px 12px 0;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #5e7f9a;
+            border-bottom: 1px solid #e9edf2;
+        }
+        .quote-table td {
+            padding: 12px 6px 12px 0;
+            border-bottom: 1px solid #f0f3f7;
+            font-size: 0.85rem;
+            vertical-align: middle;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #1e3b4f;
+        }
+        .delete-item {
+            color: #b91c2c;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            transition: 0.1s;
+        }
+        .delete-item:hover {
+            color: #ff4d4d;
+            transform: scale(1.1);
+        }
+        .total-row {
+            background: #f8fafd;
+            font-weight: 800;
+            border-top: 2px solid #dce5ec;
+        }
+        .total-row td {
+            padding: 14px 6px;
+            font-size: 1rem;
+        }
+        .grand-price {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1d6f42;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 36px 12px;
+            color: #8aa0b5;
+        }
+
+        /* recent assessments list */
+        .history-list {
+            margin-top: 18px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .history-item {
+            background: #f9fbfe;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid #2c7cb6;
+            transition: 0.1s;
+        }
+        .history-info {
+            font-size: 0.8rem;
+        }
+        .history-name {
+            font-weight: 700;
+        }
+        .history-price {
+            font-weight: 800;
+            color: #1f5e3a;
+        }
+        .load-btn {
+            background: transparent;
+            border: none;
+            color: #1c5d87;
+            cursor: pointer;
+            font-weight: 500;
+            margin-left: 12px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.75rem;
+            color: #7d96ae;
+        }
+        hr {
+            margin: 12px 0;
+            border: none;
+            border-top: 1px solid #e2e9f0;
+        }
+        .alert-badge {
+            background: #fff4e5;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="title-section">
+            <h1><i class="fas fa-video" style="color:#2c7cb6; margin-right: 10px;"></i>CCTV pre-pricing assessment</h1>
+            <p>Smart estimation • cameras, DVR, cables, installation & configuration</p>
+        </div>
+        <div class="badge-area">
+            <i class="fas fa-calculator"></i> real-time pricing engine
+        </div>
+    </div>
+
+    <!-- KPI Cards (dynamic jQuery) -->
+    <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-camera"></i></div><div class="kpi-label">Total cameras</div><div class="kpi-value" id="kpiCameras">0</div><div class="kpi-sub">in current quote</div></div>
+        <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-hdd"></i></div><div class="kpi-label">Recorder / NVR</div><div class="kpi-value" id="kpiRecorder">—</div><div class="kpi-sub">model type</div></div>
+        <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-ruler-combined"></i></div><div class="kpi-label">Cable (meters)</div><div class="kpi-value" id="kpiCable">0</div><div class="kpi-sub">CAT6 / coaxial estimate</div></div>
+        <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div><div class="kpi-label">Total estimate</div><div class="kpi-value" id="kpiTotal">₹0</div><div class="kpi-sub">+ taxes extra</div></div>
+    </div>
+
+    <!-- Main assessment area -->
+    <div class="assessment-grid">
+        <!-- LEFT: configuration form (add items) -->
+        <div class="form-card">
+            <div class="card-header">
+                <h2><i class="fas fa-plus-circle"></i> Add equipment & service</h2>
+            </div>
+            <div class="card-body">
+                <div class="input-group">
+                    <label><i class="fas fa-camera-retro"></i> Camera type</label>
+                    <select id="cameraTypeSelect">
+                        <option value="bullet">Bullet Camera (2MP) - ₹2,499</option>
+                        <option value="dome">Dome Camera (4MP) - ₹3,299</option>
+                        <option value="ptz">PTZ Camera (5MP zoom) - ₹8,990</option>
+                        <option value="turret">Turret HD (4MP) - ₹3,890</option>
+                    </select>
+                </div>
+                <div class="double-group">
+                    <div class="input-group"><label>Quantity</label><input type="number" id="cameraQty" min="1" value="1" step="1"></div>
+                    <div class="input-group"><label>Add camera</label><button class="btn-secondary" id="addCameraBtn" style="margin-top: 26px;"><i class="fas fa-plus"></i> Add camera(s)</button></div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-microchip"></i> Recorder / NVR model</label>
+                    <select id="recorderSelect">
+                        <option value="none">-- None selected --</option>
+                        <option value="basic">4CH H.265 DVR - ₹3,999</option>
+                        <option value="plus">8CH PoE NVR (4K) - ₹7,490</option>
+                        <option value="pro">16CH AI NVR - ₹14,999</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-plug"></i> Cabling length (meters) - ₹35/meter</label>
+                    <input type="number" id="cableMeters" min="0" value="0" step="5" placeholder="Estimate cable length">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-tools"></i> Installation & configuration</label>
+                    <select id="installSelect">
+                        <option value="0">No installation (self)</option>
+                        <option value="1">Basic installation (per cam) - ₹599/cam</option>
+                        <option value="2">Pro installation + config - ₹1,199/cam</option>
+                    </select>
+                </div>
+                <button class="btn-primary" id="addCustomItemBtn"><i class="fas fa-cart-plus"></i> Add to assessment quote</button>
+                <hr>
+                <div class="action-buttons">
+                    <button class="btn-secondary" id="clearQuoteBtn"><i class="fas fa-trash-alt"></i> Clear entire quote</button>
+                    <button class="btn-secondary" id="saveAssessmentBtn"><i class="fas fa-save"></i> Save as assessment</button>
+                </div>
+                <div class="alert-badge" id="infoMsg"><i class="fas fa-info-circle"></i> Add cameras, choose recorder & cable → auto update quote</div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Quote summary + saved assessments -->
+        <div class="summary-card">
+            <div class="card-header">
+                <h2><i class="fas fa-file-invoice"></i> Current pricing assessment</h2>
+            </div>
+            <div class="card-body">
+                <div class="quote-items" id="quoteItemsList">
+                    <!-- dynamic items from jQuery will fill -->
+                    <div class="empty-message"><i class="fas fa-clipboard-list"></i> No items added yet. Start by adding cameras or recorder.</div>
+                </div>
+                <div style="text-align: right; border-top: 1px solid #eef2f6; padding-top: 16px; margin-top: 8px;">
+                    <span style="font-weight: 600;">Grand Total : </span><span id="grandTotalDisplay" class="grand-price">₹0</span>
+                </div>
+            </div>
+            <div class="card-header" style="border-top: 1px solid #eef2f6;">
+                <h2><i class="fas fa-history"></i> Recent pre-pricing assessments</h2>
+            </div>
+            <div class="card-body" style="padding-top: 8px;">
+                <div id="historyContainer" class="history-list">
+                    <div class="empty-message" style="padding: 20px;">No saved assessments. Click "Save as assessment"</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <i class="fas fa-chart-line"></i> Dynamic pricing • per item breakdown • taxes not included • realtime jquery dashboard
+    </footer>
+</div>
+
+<script>
+    $(document).ready(function() {
+
+        // --- DATA MODEL ---
+        let quoteItems = [];   // each item: { id, name, price, type, meta }
+        let nextId = 1;
+        let savedAssessments = [];  // store { id, name, total, date, itemsSnapshot }
+
+        // pricing constants
+        const CABLE_RATE = 35; // per meter
+        
+        // Helper: generate a clean item list based on current form selections? But we will add manually with "Add to quote"
+        // However we also want to show recorder and cables as items when added. Simpler: whenever user clicks "Add to assessment quote"
+        // we capture camera selections, recorder selection, cable meters, installation option and aggregate them.
+        // Strategy: The "Add to assessment quote" will append selected cameras (multiple at once), and also add/update recorder item? Actually typical workflow: 
+        // User can add multiple different camera groups. Recorder and cable should be separate line items? But to avoid duplicates, we treat recorder as single item that replaces previous recorder item.
+        // Cables as separate item, installation as separate. To keep UX intuitive, each time the user clicks "Add to quote" we:
+        // 1. Add cameras according to selected camera type + quantity (each camera group as new line)
+        // 2. Replace recorder item if recorder selected (remove previous recorder from list and add new one)
+        // 3. Replace cable item (if cable meters >0) otherwise remove cable item.
+        // 4. Add/Replace installation based on selected install option + total cameras count (dynamic).
+        // This yields dynamic quote.
+        
+        function refreshQuoteUI() {
+            // render items table
+            let html = `<table class="quote-table">
+                        <thead><tr><th>ITEM</th><th>DETAILS</th><th>PRICE</th><th></th></tr></thead><tbody>`;
+            if(quoteItems.length === 0) {
+                html = `<div class="empty-message"><i class="fas fa-box-open"></i> No items. Add cameras or other components.</div>`;
+                $("#quoteItemsList").html(html);
+                updateKPIsAndTotal();
+                return;
+            }
+            quoteItems.forEach(item => {
+                html += `<tr>
+                            <td class="item-name">${escapeHtml(item.name)}</td>
+                            <td>${item.meta || ''}</td>
+                            <td>₹${item.price.toLocaleString('en-IN')}</td>
+                            <td><button class="delete-item" data-id="${item.id}"><i class="fas fa-trash-can"></i></button></td>
+                         </tr>`;
+            });
+            // total row
+            let total = getTotalPrice();
+            html += `<tr class="total-row"><td colspan="2"><strong>TOTAL AMOUNT</strong></td><td colspan="2"><strong>₹${total.toLocaleString('en-IN')}</strong></td></tr>`;
+            html += `</tbody></table>`;
+            $("#quoteItemsList").html(html);
+            // bind delete events
+            $(".delete-item").on("click", function() {
+                let id = parseInt($(this).data("id"));
+                quoteItems = quoteItems.filter(i => i.id !== id);
+                refreshQuoteUI();
+                updateKPIsAndTotal();
+            });
+            updateKPIsAndTotal();
+        }
+        
+        function getTotalPrice() {
+            return quoteItems.reduce((sum, i) => sum + i.price, 0);
+        }
+        
+        function updateKPIsAndTotal() {
+            // count cameras (items name includes "Camera")
+            let totalCams = 0;
+            let recorderModel = "None";
+            let cableMetersTotal = 0;
+            quoteItems.forEach(item => {
+                if(item.name.toLowerCase().includes("camera")) {
+                    totalCams += (item.meta && item.meta.qty) ? item.meta.qty : 1;
+                }
+                if(item.name.toLowerCase().includes("recorder") || item.name.toLowerCase().includes("nvr") || item.name.toLowerCase().includes("dvr")) {
+                    recorderModel = item.name;
+                }
+                if(item.name.toLowerCase().includes("cabling")) {
+                    let match = item.meta?.meters || 0;
+                    cableMetersTotal = match;
+                }
+            });
+            let totalVal = getTotalPrice();
+            $("#kpiCameras").text(totalCams);
+            $("#kpiRecorder").text(recorderModel !== "None" ? recorderModel.split('-')[0].trim() : "—");
+            $("#kpiCable").text(cableMetersTotal);
+            $("#kpiTotal").text("₹" + totalVal.toLocaleString('en-IN'));
+            $("#grandTotalDisplay").text("₹" + totalVal.toLocaleString('en-IN'));
+        }
+        
+        // Helper to add/update items with merge strategy: remove previous items of certain categories
+        function syncQuoteWithSelections(camType, camQty, recorderVal, cableMeters, installVal) {
+            // Clone existing items but remove recorder, cabling, installation items to replace
+            let newItems = quoteItems.filter(item => {
+                return !(item.category === "recorder" || item.category === "cabling" || item.category === "installation");
+            });
+            // 1. Add camera(s) as new items (each group separate)
+            let cameraPriceMap = { bullet: 2499, dome: 3299, ptz: 8990, turret: 3890 };
+            let cameraNameMap = { bullet: "Bullet Camera (2MP)", dome: "Dome Camera (4MP)", ptz: "PTZ Camera (5MP zoom)", turret: "Turret HD (4MP)" };
+            let selectedCamPrice = cameraPriceMap[camType];
+            let camDisplayName = cameraNameMap[camType];
+            let totalCamPrice = selectedCamPrice * camQty;
+            let newCamItem = {
+                id: nextId++,
+                name: `${camDisplayName} ${camQty > 1 ? `(x${camQty})` : ''}`,
+                price: totalCamPrice,
+                category: "camera",
+                meta: { qty: camQty, type: camType }
+            };
+            newItems.push(newCamItem);
+            
+            // 2. Recorder
+            if(recorderVal !== "none") {
+                let recPrice = 0; let recName = "";
+                if(recorderVal === "basic") { recPrice = 3999; recName = "4CH H.265 DVR"; }
+                else if(recorderVal === "plus") { recPrice = 7490; recName = "8CH PoE NVR (4K)"; }
+                else if(recorderVal === "pro") { recPrice = 14999; recName = "16CH AI NVR"; }
+                newItems.push({ id: nextId++, name: recName, price: recPrice, category: "recorder", meta: {} });
+            }
+            // 3. Cabling
+            if(cableMeters > 0) {
+                let cablePrice = cableMeters * CABLE_RATE;
+                newItems.push({ id: nextId++, name: "Cabling (CAT6/Coax)", price: cablePrice, category: "cabling", meta: { meters: cableMeters } });
+            }
+            // 4. Installation based on total camera quantity (note we have to count all cameras from all camera groups) but we will recompute total cameras from newItems
+            let totalCamerasCount = newItems.filter(i => i.category === "camera").reduce((acc, cam) => acc + (cam.meta?.qty || 1), 0);
+            let installMode = installVal;
+            let installPriceTotal = 0;
+            let installDesc = "";
+            if(installMode === "1") { installPriceTotal = totalCamerasCount * 599; installDesc = `Basic installation (₹599/cam) x${totalCamerasCount}`; }
+            else if(installMode === "2") { installPriceTotal = totalCamerasCount * 1199; installDesc = `Pro installation (₹1199/cam) x${totalCamerasCount}`; }
+            if(installPriceTotal > 0) {
+                newItems.push({ id: nextId++, name: "Installation & Configuration", price: installPriceTotal, category: "installation", meta: { perCam: installMode, totalCams: totalCamerasCount, desc: installDesc } });
+            }
+            quoteItems = newItems;
+            refreshQuoteUI();
+        }
+        
+        // button: Add full assessment from current form selections
+        $("#addCustomItemBtn").on("click", function() {
+            let camType = $("#cameraTypeSelect").val();
+            let camQty = parseInt($("#cameraQty").val()) || 1;
+            if(camQty < 1) camQty = 1;
+            let recorderVal = $("#recorderSelect").val();
+            let cableMeters = parseFloat($("#cableMeters").val()) || 0;
+            let installVal = $("#installSelect").val();
+            // clean and sync
+            syncQuoteWithSelections(camType, camQty, recorderVal, cableMeters, installVal);
+            $("#infoMsg").html("<i class='fas fa-check-circle'></i> Quote updated with new cameras, recorder, cabling, installation.");
+            setTimeout(() => { $("#infoMsg").html("<i class='fas fa-info-circle'></i> Add cameras, choose recorder & cable → auto update quote"); }, 3000);
+        });
+        
+        $("#clearQuoteBtn").on("click", function() {
+            quoteItems = [];
+            refreshQuoteUI();
+            $("#infoMsg").html("<i class='fas fa-trash'></i> All items cleared. Start fresh.");
+            setTimeout(() => { $("#infoMsg").html("<i class='fas fa-info-circle'></i> Add cameras, choose recorder & cable → auto update quote"); }, 2500);
+        });
+        
+        // Save current assessment (snapshot)
+        $("#saveAssessmentBtn").on("click", function() {
+            if(quoteItems.length === 0) {
+                $("#infoMsg").html("<i class='fas fa-exclamation-triangle'></i> No items to save. Add equipment first.");
+                return;
+            }
+            let total = getTotalPrice();
+            let snapshot = JSON.parse(JSON.stringify(quoteItems)); // deep copy
+            let assessmentName = "Assessment " + (savedAssessments.length+1) + " - " + new Date().toLocaleTimeString();
+            let newAssess = {
+                id: Date.now(),
+                name: assessmentName,
+                total: total,
+                date: new Date().toLocaleString(),
+                items: snapshot
+            };
+            savedAssessments.unshift(newAssess);
+            if(savedAssessments.length > 5) savedAssessments.pop();
+            renderHistory();
+            $("#infoMsg").html("<i class='fas fa-save'></i> Assessment saved successfully!");
+            setTimeout(() => { $("#infoMsg").html("<i class='fas fa-info-circle'></i> Add cameras, choose recorder & cable → auto update quote"); }, 2500);
+        });
+        
+        function renderHistory() {
+            if(savedAssessments.length === 0) {
+                $("#historyContainer").html('<div class="empty-message" style="padding: 20px;">No saved assessments. Click "Save as assessment"</div>');
+                return;
+            }
+            let histHtml = "";
+            savedAssessments.forEach(ass => {
+                histHtml += `<div class="history-item">
+                                <div class="history-info">
+                                    <div class="history-name">${escapeHtml(ass.name)}</div>
+                                    <div>${ass.date}</div>
+                                </div>
+                                <div><span class="history-price">₹${ass.total.toLocaleString('en-IN')}</span>
+                                <button class="load-btn" data-id="${ass.id}"><i class="fas fa-upload"></i> Load</button>
+                                </div>
+                            </div>`;
+            });
+            $("#historyContainer").html(histHtml);
+            $(".load-btn").on("click", function() {
+                let id = parseInt($(this).data("id"));
+                let found = savedAssessments.find(a => a.id === id);
+                if(found) {
+                    quoteItems = found.items.map(it => ({ ...it, id: nextId++ }));
+                    refreshQuoteUI();
+                    $("#infoMsg").html("<i class='fas fa-history'></i> Loaded previous assessment: " + found.name);
+                    setTimeout(() => { $("#infoMsg").html("<i class='fas fa-info-circle'></i> Ready to modify"); }, 2500);
+                }
+            });
+        }
+        
+        function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+        
+        // initial empty quote
+        refreshQuoteUI();
+        renderHistory();
+    });
+</script>
+</body>
+</html>
